@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.componentestest.Componentes.Firebase.EjemploEscritura
 import com.example.componentestest.Componentes.Firebase.EjemploLectura
+import com.example.myapplication.Login.Login
 import com.example.myapplication.Navigation.NavegacionApp
 import com.example.myapplication.Registro.RegistroUsuario
 import com.example.myapplication.ui.theme.MyApplicationTheme
@@ -33,8 +34,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
-            RegistroUsuario()
-//            NavegacionApp()
+            NavegacionApp()
         }
     }
 }

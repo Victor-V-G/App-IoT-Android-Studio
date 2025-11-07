@@ -1,33 +1,29 @@
 package com.example.myapplication.Navigation
+
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import  androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.componentestest.Componentes.Firebase.EjemploLectura
-import com.example.myapplication.Screens.PantallaDetalle
-import com.example.myapplication.Screens.PantallaInicio
+import com.example.myapplication.Login.Login
+import com.example.myapplication.Registro.RegistroUsuario
+import com.example.myapplication.ViewModel.UsuarioViewModel
 
 @Composable
 fun NavegacionApp() {
     val navController: NavHostController = rememberNavController()
+    val usuarioViewModel: UsuarioViewModel = viewModel()
 
     NavHost(
         navController = navController,
-        startDestination = "Inicio"
+        startDestination = "Login"
     ) {
-        composable("Inicio") {
-            PantallaInicio(navController)
+        composable("Login"){
+            Login(navController, usuarioViewModel)
         }
-        composable("detalle/{nombre}") { backStackEntry ->
-            val nombre = backStackEntry
-                .arguments
-                ?.getString("nombre") ?: "Invitado"
-
-            PantallaDetalle(nombre, navController)
-        }
-        composable("datos") { backStackEntry ->
-            EjemploLectura()
+        composable("Registro"){
+            RegistroUsuario(navController,usuarioViewModel)
         }
     }
 }

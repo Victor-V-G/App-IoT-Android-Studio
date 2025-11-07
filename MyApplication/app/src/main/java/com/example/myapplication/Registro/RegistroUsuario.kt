@@ -1,7 +1,5 @@
 package com.example.myapplication.Registro
 
-import android.graphics.Outline
-import android.widget.Space
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -17,18 +15,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.myapplication.ViewModel.UsuarioViewModel
 
 //Variables mutables (var), puede cambiar su valor
 //Variables inmutables (val), no puede cambiar su valor
 
 @Composable
-fun RegistroUsuario () {
+fun RegistroUsuario (navController: NavController, usuarioViewModel: UsuarioViewModel) {
 
     var username by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -45,6 +42,19 @@ fun RegistroUsuario () {
             .padding(20.dp),
             verticalArrangement = Arrangement.Center
     ) {
+        Button(
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.Red,
+                contentColor = Color.White
+            ),
+            onClick = {
+                navController.navigate("Login")
+            }
+        ) {Text(
+            text = "<- Volver atras",
+            style = MaterialTheme.typography.bodySmall
+        ) }
+
         OutlinedTextField(
             value = username,
             onValueChange = {
@@ -123,9 +133,9 @@ fun RegistroUsuario () {
                         confirmarPassword = ""
                     }
                     else -> {
-                        val almacenarRegistroUsuario =
-                            mutableMapOf("Username" to username, "Password" to password)
-                        println("Registro guardado: $almacenarRegistroUsuario")
+                        usuarioViewModel.registrarUsuario(username, password)
+                        println("Registro guardado: ${usuarioViewModel.usuarios}")
+                        navController.navigate("Login")
                     }
                 }
             },
