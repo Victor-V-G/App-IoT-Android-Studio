@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "711843624967",
+    "firebase_url": "https://app-test-dos-10dfe-default-rtdb.firebaseio.com",
+    "project_id": "app-test-dos-10dfe",
+    "storage_bucket": "app-test-dos-10dfe.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:711843624967:android:a3aee3ef8286445a3c52a2",
+        "android_client_info": {
+          "package_name": "com.example.testfirebase"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAm1ZyYiAZC8eXlKRhuXVhWVry97fpeHoA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
