@@ -1,29 +1,26 @@
 package com.example.myapplication.Navigation
 
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import  androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.myapplication.Login.Login
-import com.example.myapplication.Registro.RegistroUsuario
-import com.example.myapplication.ViewModel.UsuarioViewModel
+import com.example.myapplication.Authentication.AuthenticationFirebase
+import com.example.myapplication.Screens.PantallaInicio
 
 @Composable
 fun NavegacionApp() {
     val navController: NavHostController = rememberNavController()
-    val usuarioViewModel: UsuarioViewModel = viewModel()
-
+    val authenticationClass = AuthenticationFirebase()
     NavHost(
         navController = navController,
         startDestination = "Login"
     ) {
         composable("Login"){
-            Login(navController, usuarioViewModel)
+            authenticationClass.MenuLogin(navController)
         }
-        composable("Registro"){
-            RegistroUsuario(navController,usuarioViewModel)
+        composable("Inicio"){
+            PantallaInicio(navController)
         }
     }
 }
