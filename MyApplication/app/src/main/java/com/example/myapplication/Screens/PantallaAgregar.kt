@@ -1,0 +1,130 @@
+package com.example.myapplication.Screens
+
+import android.app.Activity
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import com.example.myapplication.Authentication.AuthenticationFirebase
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.componentestest.Componentes.Firebase.DispositivoData
+import com.example.componentestest.Componentes.Firebase.LeerFirebase
+import com.example.componentestest.Componentes.Firebase.SensorData
+import com.example.componentestest.Componentes.Firebase.escribirFirebase
+import com.google.firebase.auth.FirebaseAuth
+import kotlin.system.exitProcess
+
+@Composable
+fun PantallaAgregar(navController: NavController) {
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 40.dp),
+        verticalArrangement = Arrangement.Top
+    ) {
+        Text(text = "Agregar dispositivo")
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(Color(0xFFEEEDED), shape = RoundedCornerShape(16.dp))
+                    .padding(80.dp)
+                    .align(Alignment.CenterHorizontally)
+                    .padding(horizontal = 24.dp),
+                contentAlignment = Alignment.Center
+
+            ) {
+                DetectarDispositivo()
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetectarDispositivo() {
+
+    val user = FirebaseAuth.getInstance().currentUser
+    val userId = user?.uid
+
+    if (userId == null) {
+        Text("Usuario no loggeado")
+        return
+    }
+
+    val (dispositivoDetectado, isLoading, error) =
+        LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
+
+    Column {
+        when {
+            isLoading -> Text("Cargando...")
+            error != null -> Text("Error: $error")
+            else -> {
+                Text(
+                    text = "Dispositivo: ${dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"}",
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = {
+                        escribirFirebase(
+                            field = "sesiones/sesion_$userId/dispositivo_data",
+                            value = mapOf(
+                                "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                "estado_agregado" to 1
+                            )
+                        )
+                        //como el estado paso a 1 deberia poder agregarse en la otra pantalla
+                    }
+                ) {
+                    Text("Agregar")
+                }
+            }
+        }
+    }
+}
+
+

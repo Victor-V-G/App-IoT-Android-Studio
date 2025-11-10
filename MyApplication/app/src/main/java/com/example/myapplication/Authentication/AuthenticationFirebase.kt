@@ -14,7 +14,13 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.ValueEventListener
+import com.google.firebase.database.database
+import android.util.Log
+import com.google.firebase.database.*
 
 class AuthenticationFirebase () {
 
@@ -121,12 +127,47 @@ class AuthenticationFirebase () {
         }
     }
 
+    private fun crearSesionUsuario(userId: String) {
+        val database = Firebase.database
+        val sesionRef = database.getReference("sesiones/sesion_$userId/dispositivo_data")
+
+        sesionRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!snapshot.exists()) {
+                    val datosIniciales = mapOf(
+                        "dispositivo_nombre" to "Arduino",
+                        "estado_agregado" to 0
+                    )
+                    sesionRef.setValue(datosIniciales)
+                        .addOnSuccessListener {
+                            println("Sesión creada para el usuario $userId")
+                        }
+                        .addOnFailureListener { error ->
+                            println("Error al crear sesión: ${error.message}")
+                        }
+                } else {
+                    println("Sesión existente, no se crea duplicado")
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                println("Error al leer sesión: ${error.message}")
+            }
+        })
+    }
+
+
     //Funcion sacada de https://firebase.google.com/docs/auth/android/start?hl=es-419#sign_in_existing_users
     // y adaptada a mis requerimientos y logica
     private fun loginFirebase(navController: NavController, context: android.content.Context, email: String, password: String) {
         FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
+                    val user = FirebaseAuth.getInstance().currentUser
+                    val userId = user?.uid ?: ""
+
+                    crearSesionUsuario(userId)
+
                     navController.navigate("Inicio")
                     Toast.makeText(context, "Inicio de sesión exitoso", Toast.LENGTH_SHORT).show()
                 } else {

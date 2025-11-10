@@ -6,7 +6,7 @@ import com.google.firebase.database.database
 
 fun escribirFirebase(
     field: String,
-    value: ActuatorControl,
+    value: Map<String, Any?>,
     onSuccess: () -> Unit = {},
     onError: (String) -> Unit = {}
 ) {

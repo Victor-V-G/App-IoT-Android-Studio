@@ -16,16 +16,9 @@ import com.google.firebase.Timestamp
 @Composable
 fun EjemploLectura(){
     var sensor by rememberSaveable  { mutableStateOf<SensorData?>(null) }
-    var errorMsg by rememberSaveable { mutableStateOf<String?>(null) }
-    var loading by rememberSaveable { mutableStateOf(false) }
 
     LeerFirebase("sensor_data", SensorData::class.java).apply {
         sensor = first ?: sensor
-        loading = second
-        errorMsg = third
-
-
-
     }
 
     Column {

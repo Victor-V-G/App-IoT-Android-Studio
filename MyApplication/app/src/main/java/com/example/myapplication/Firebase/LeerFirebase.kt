@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -29,9 +30,9 @@ fun <T> LeerFirebase(
     field: String,
     valueType: Class<T>
 ): Triple<T?, Boolean, String?> {
-    var currentValue by rememberSaveable { mutableStateOf<T?>(null) }
-    var isLoading by rememberSaveable { mutableStateOf(true) }
-    var errorMessage by rememberSaveable { mutableStateOf<String?>(null) }
+    var currentValue by remember { mutableStateOf<T?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     val database = Firebase.database
     val myRef = database.getReference(field)
@@ -43,8 +44,6 @@ fun <T> LeerFirebase(
             override fun onDataChange(snapshot: DataSnapshot) {
                 try {
                     println("holaListener")
-
-
                     val value = snapshot.getValue(valueType)
                     currentValue = value
                     isLoading = false
