@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -14,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.myapplication.Authentication.AuthenticationFirebase
+
 
 @Composable
 fun BotonesInferiores(navController: NavController) {
@@ -29,75 +31,87 @@ fun BotonesInferiores(navController: NavController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFF868484))
+                .background(Color(0xFFECECEC))
                 .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.spacedBy(50.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 // Botón Home
-                Button(
-                    onClick = { navController.navigate("Inicio") },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue,
-                        contentColor = Color.White
-                    )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    IconButton(
+                        onClick = { navController.navigate("Inicio") },
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Home,
-                            contentDescription = "Home",
-                            modifier = Modifier.size(24.dp)
+                            contentDescription = "Menu principal",
+                            tint = Color.Black,
+                            modifier = Modifier.size(36.dp)
                         )
-                        Text("Home", fontSize = MaterialTheme.typography.labelSmall.fontSize)
                     }
+
+                    Spacer(modifier = Modifier.height(1.dp))
+
+                    Text(
+                        text = "Menú principal",
+                        color = Color.Black,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize
+                    )
                 }
 
                 // Botón Alertas
-                Button(
-                    onClick = { /* Acción futura */ },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Blue,
-                        contentColor = Color.White
-                    )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    IconButton(
+                        onClick = { /* Acción futura */ },
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.Notifications,
                             contentDescription = "Alertas",
-                            modifier = Modifier.size(24.dp)
+                            tint = Color.Black,
+                            modifier = Modifier.size(36.dp)
                         )
-                        Text("Alertas", fontSize = MaterialTheme.typography.labelSmall.fontSize)
                     }
+
+                    Spacer(modifier = Modifier.height(1.dp))
+
+                    Text(
+                        text = "Alertas",
+                        color = Color.Black,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize
+                    )
                 }
 
                 // Botón Salir
-                Button(
-                    onClick = { show = true },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color.Red,
-                        contentColor = Color.White
-                    )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                    IconButton(
+                        onClick = { show = true },
+                        modifier = Modifier.size(60.dp)
                     ) {
                         Icon(
                             imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Cerrar Sesión",
-                            modifier = Modifier.size(24.dp)
+                            contentDescription = "Cerrar sesión",
+                            tint = Color.Black,
+                            modifier = Modifier.size(36.dp)
                         )
-                        Text("Salir", fontSize = MaterialTheme.typography.labelSmall.fontSize)
                     }
+
+                    Spacer(modifier = Modifier.height(1.dp))
+
+                    Text(
+                        text = "Cerrar sesión",
+                        color = Color.Black,
+                        fontSize = MaterialTheme.typography.labelSmall.fontSize
+                    )
                 }
             }
         }
@@ -106,7 +120,7 @@ fun BotonesInferiores(navController: NavController) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color(0xFFE7E7E7))
+                .background(Color(0xFFF1F1F1))
                 .padding(20.dp),
             contentAlignment = Alignment.Center
         ) {}
