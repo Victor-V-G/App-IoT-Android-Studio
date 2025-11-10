@@ -2,9 +2,11 @@ package com.example.myapplication.Screens
 
 import android.app.Activity
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,11 +17,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -37,22 +42,25 @@ import com.example.myapplication.Authentication.AuthenticationFirebase
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.TextButton
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import com.example.componentestest.Componentes.Firebase.DispositivoData
 import com.example.componentestest.Componentes.Firebase.LeerFirebase
 import com.example.componentestest.Componentes.Firebase.escribirFirebase
 import com.example.myapplication.Componentes.BotonesInferiores
+import com.example.myapplication.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
 
 @Composable
 fun PantallaInicio(navController: NavController) {
-
-    val authenticationClass = AuthenticationFirebase()
-
-    var show by rememberSaveable { mutableStateOf(false) }
 
     val activity = LocalContext.current as? Activity
 
@@ -69,9 +77,26 @@ fun PantallaInicio(navController: NavController) {
             modifier = Modifier.padding(top = 40.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            Text(text = "Pantalla de inicio")
+
+            val user = FirebaseAuth.getInstance().currentUser
+            val userEmail = user?.email
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+            ) {
+                Text(
+                    text = "Bienvenido: $userEmail",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.align(Alignment.TopStart)
+                )
+            }
         }
 
+        // Dispositivo agregado
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -94,7 +119,13 @@ fun PantallaInicio(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 40.dp),
+                        .padding(top = 40.dp)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            navController.navigate("Agregar")
+                        },
                     contentAlignment = Alignment.Center
                 ) {
                     when {
@@ -114,13 +145,45 @@ fun PantallaInicio(navController: NavController) {
                                             color = Color.Transparent,
                                             shape = RoundedCornerShape(16.dp)
                                         )
-                                        .padding(60.dp),
+                                        .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Text(
-                                        text = dispositivoDetectado.dispositivo_nombre,
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start
+                                        ) {
+
+                                            Image(
+                                                painter = painterResource(id = R.drawable.icono_arduino),
+                                                contentDescription = "Imagen de ejemplo",
+                                                modifier = Modifier
+                                                    .size(100.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            )
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            Text(
+                                                text = dispositivoDetectado.dispositivo_nombre,
+                                                style = MaterialTheme.typography.titleLarge,
+                                                color = Color.Black,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                        Icon(
+                                            imageVector = Icons.Default.KeyboardArrowRight,
+                                            contentDescription = "Acceder",
+                                            tint = Color.Black,
+                                            modifier = Modifier.size(36.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

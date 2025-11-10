@@ -1,7 +1,9 @@
 package com.example.myapplication.Screens
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -45,6 +47,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -57,6 +60,10 @@ import com.example.componentestest.Componentes.Firebase.escribirFirebase
 import com.example.myapplication.Componentes.BotonesInferiores
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
+import androidx.compose.ui.res.painterResource
+import com.example.myapplication.R
+
+
 
 @Composable
 fun PantallaAgregar(navController: NavController) {
@@ -121,7 +128,7 @@ fun PantallaAgregar(navController: NavController) {
                 contentAlignment = Alignment.Center
 
             ) {
-                DetectarDispositivo()
+                DetectarDispositivo(navController)
             }
         }
     }
@@ -131,10 +138,12 @@ fun PantallaAgregar(navController: NavController) {
 }
 
 @Composable
-private fun DetectarDispositivo() {
+private fun DetectarDispositivo(navController : NavController) {
 
     val user = FirebaseAuth.getInstance().currentUser
     val userId = user?.uid
+
+    val context = LocalContext.current
 
     if (userId == null) {
         Text("Usuario no loggeado")
@@ -144,26 +153,50 @@ private fun DetectarDispositivo() {
     val (dispositivoDetectado, isLoading, error) =
         LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
 
-    Column {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         when {
             isLoading -> Text("Cargando...")
             error != null -> Text("Error: $error")
             else -> {
+                // Imagen dentro de la Box
+                Image(
+                    painter = painterResource(id = R.drawable.icono_arduino),
+                    contentDescription = "Imagen de ejemplo",
+                    modifier = Modifier
+                        .size(120.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
                 Text(
                     text = "Dispositivo: ${dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"}",
                     style = MaterialTheme.typography.titleMedium
                 )
+
                 Spacer(modifier = Modifier.height(12.dp))
+
                 Button(
                     onClick = {
-                        escribirFirebase(
-                            field = "sesiones/sesion_$userId/dispositivo_data",
-                            value = mapOf(
-                                "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
-                                "estado_agregado" to 1
+
+                        val estadoAgregado = dispositivoDetectado?.estado_agregado ?: 0
+
+                        if (estadoAgregado == 1){
+                            Toast.makeText(context, "Este dispositivo ya esta agregado", Toast.LENGTH_SHORT).show()
+                        } else {
+                            escribirFirebase(
+                                field = "sesiones/sesion_$userId/dispositivo_data",
+                                value = mapOf(
+                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                    "estado_agregado" to 1
+                                )
                             )
-                        )
-                        //como el estado paso a 1 deberia poder agregarse en la otra pantalla
+                            navController.navigate("Inicio")
+                            Toast.makeText(context, "Dispositivo agregado correctamente", Toast.LENGTH_SHORT).show()
+                            //como el estado paso a 1 deberia poder agregarse en la otra pantalla
+                        }
                     }
                 ) {
                     Text("Agregar")

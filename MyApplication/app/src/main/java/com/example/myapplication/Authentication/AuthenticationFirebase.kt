@@ -135,7 +135,7 @@ class AuthenticationFirebase () {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (!snapshot.exists()) {
                     val datosIniciales = mapOf(
-                        "dispositivo_nombre" to "Arduino",
+                        "dispositivo_nombre" to "Arduino WEMOS D1",
                         "estado_agregado" to 0
                     )
                     sesionRef.setValue(datosIniciales)
