@@ -15,12 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -38,17 +40,21 @@ import com.example.myapplication.Authentication.AuthenticationFirebase
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import com.example.componentestest.Componentes.Firebase.DispositivoData
 import com.example.componentestest.Componentes.Firebase.LeerFirebase
 import com.example.componentestest.Componentes.Firebase.SensorData
 import com.example.componentestest.Componentes.Firebase.escribirFirebase
+import com.example.myapplication.Componentes.BotonesInferiores
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
 
@@ -61,7 +67,44 @@ fun PantallaAgregar(navController: NavController) {
             .padding(top = 40.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        Text(text = "Agregar dispositivo")
+        // HEADER
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                // icono de volver
+                IconButton(
+                    onClick = { navController.navigate("Inicio") },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .size(60.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = "Volver",
+                        tint = Color.Black,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+
+                // Texto centrado
+                Text(
+                    text = "Agregar Dispositivo",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+
+        // CONTENIDO
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -82,6 +125,9 @@ fun PantallaAgregar(navController: NavController) {
             }
         }
     }
+
+    BotonesInferiores(navController)
+
 }
 
 @Composable

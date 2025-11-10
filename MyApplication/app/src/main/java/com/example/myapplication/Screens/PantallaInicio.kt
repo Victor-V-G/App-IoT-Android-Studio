@@ -43,6 +43,7 @@ import androidx.compose.ui.platform.LocalContext
 import com.example.componentestest.Componentes.Firebase.DispositivoData
 import com.example.componentestest.Componentes.Firebase.LeerFirebase
 import com.example.componentestest.Componentes.Firebase.escribirFirebase
+import com.example.myapplication.Componentes.BotonesInferiores
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
 
@@ -157,134 +158,10 @@ fun PantallaInicio(navController: NavController) {
             }
         }
 
-        // Parte inferior
-        Column(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.Bottom
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFF868484))
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Button(
-                        onClick = { navController.navigate("Inicio")},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Blue,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Home,
-                                contentDescription = "Home",
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text("Home", fontSize = MaterialTheme.typography.labelSmall.fontSize)
-                        }
-                    }
-
-                    Button(
-                        onClick = {},
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Blue,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Notifications,
-                                contentDescription = "Alertas",
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text("Alertas", fontSize = MaterialTheme.typography.labelSmall.fontSize)
-                        }
-                    }
-
-                    Button(
-                        onClick = {
-                            show = true
-                        },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = Color.Red,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.AccountCircle,
-                                contentDescription = "Cerrar Sesión",
-                                modifier = Modifier.size(24.dp)
-                            )
-                            Text("Salir", fontSize = MaterialTheme.typography.labelSmall.fontSize)
-                        }
-                    }
-                }
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(Color(0xFFE7E7E7))
-                    .padding(20.dp),
-                contentAlignment = Alignment.Center
-            ) {}
-        }
-
-        CerrarSesionDialog(
-            show,
-            {
-                show = false
-            },
-            {
-                authenticationClass.cerrarSesion()
-                navController.navigate("Login") {
-                    popUpTo("Inicio") {inclusive = true}
-                    launchSingleTop = true
-                }
-            }
-        )
+        BotonesInferiores(navController)
     }
 }
 
-@Composable
-fun CerrarSesionDialog(
-    show: Boolean,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    if (show == true) {
-        AlertDialog(
-            onDismissRequest = { onDismiss() },
-            confirmButton = {
-                TextButton(onClick = { onConfirm() }) {
-                    Text(text = "Confirmar")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { onDismiss() }) {
-                    Text(text = "Cancelar")
-                }
-            },
-            title = { Text(text = "Cerrar sesion") },
-            text = { Text(text = "¿Esta seguro que desea cerrar la sesion?") })
-    }
-}
 
 // victorvicencio932@gmail.com
 // vitoco2005
