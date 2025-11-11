@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.Authentication.AuthenticationFirebase
 import com.example.myapplication.Screens.PantallaAgregar
 import com.example.myapplication.Screens.PantallaDispositivo
+import com.example.myapplication.Screens.PantallaEstablecerAlertas
 import com.example.myapplication.Screens.PantallaInicio
 import com.google.firebase.auth.FirebaseAuth
 
@@ -36,6 +37,9 @@ fun NavegacionApp() {
         }
         composable("Dispositivo"){
             PantallaDispositivo(navController)
+        }
+        composable("EstablecerAlertas"){
+            PantallaEstablecerAlertas(navController)
         }
     }
 }

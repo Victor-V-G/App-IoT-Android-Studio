@@ -193,7 +193,7 @@ fun PantallaDispositivo(navController: NavController) {
             DispositivoAgregado()
         }
 
-        // DATOS
+        //Detectar Corriente
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -242,18 +242,16 @@ fun PantallaDispositivo(navController: NavController) {
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-
+                                        //Corriente Detectada
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Start
                                         ) {
-
                                             Image(
                                                 painter = painterResource(id = R.drawable.voltaje),
                                                 contentDescription = "Imagen de ejemplo",
@@ -265,7 +263,7 @@ fun PantallaDispositivo(navController: NavController) {
                                             Spacer(modifier = Modifier.width(12.dp))
 
                                             Text(
-                                                text = "Voltaje Detectado: ${dispositivoDetectado.voltaje_detectado.toString()}",
+                                                text = "Corriente Detectada: ${dispositivoDetectado.corriente_detectada.toString()}",
                                                 style = MaterialTheme.typography.titleLarge,
                                                 color = Color.Black,
                                                 fontWeight = FontWeight.Bold
@@ -280,6 +278,69 @@ fun PantallaDispositivo(navController: NavController) {
             }
             DispositivoAgregado()
         }
+
+        // Establecer alertas
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 40.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(0.9f)
+                    .background(
+                        color = Color(0xFFEEEDED),
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .border(
+                        width = 2.dp,
+                        color = Color.Transparent,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(vertical = 16.dp)
+                    .clickable(
+                        indication = null,
+                        interactionSource = remember { MutableInteractionSource() }
+                    ) {
+                        navController.navigate("EstablecerAlertas")
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Notifications,
+                    contentDescription = "Establecer Alertas",
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 30.dp)
+                        .size(36.dp),
+                    tint = Color.Black
+                )
+                Text(
+                    text = "Establecer Alertas",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = Color.Black,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+
+                Icon(
+                    imageVector = Icons.Default.KeyboardArrowRight,
+                    contentDescription = "Establecer Alertas",
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .padding(start = 320.dp)
+                        .size(24.dp),
+                    tint = Color.Black
+                )
+            }
+        }
     }
     BotonesInferiores(navController)
+
 }
+//Leer corriente (Completo)
+//Establecer rangos minimos y maximos para alertas
+//monitorear estado del rele
+//modo de uso manual/automatico

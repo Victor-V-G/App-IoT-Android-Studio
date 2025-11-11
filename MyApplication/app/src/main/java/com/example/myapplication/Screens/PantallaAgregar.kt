@@ -191,7 +191,11 @@ private fun DetectarDispositivo(navController : NavController) {
                                 value = mapOf(
                                     "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
                                     "estado_agregado" to 1,
-                                    "voltaje_detectado" to (dispositivoDetectado?.voltaje_detectado ?: 0)
+                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                    "alertas_dispositivo" to mapOf(
+                                        "estado" to false,
+                                        "rango" to 0.0
+                                    )
                                 )
                             )
                             navController.navigate("Inicio")
