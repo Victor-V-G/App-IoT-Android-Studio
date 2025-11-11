@@ -190,7 +190,8 @@ private fun DetectarDispositivo(navController : NavController) {
                                 field = "sesiones/sesion_$userId/dispositivo_data",
                                 value = mapOf(
                                     "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
-                                    "estado_agregado" to 1
+                                    "estado_agregado" to 1,
+                                    "voltaje_detectado" to (dispositivoDetectado?.voltaje_detectado ?: 0)
                                 )
                             )
                             navController.navigate("Inicio")

@@ -136,7 +136,8 @@ class AuthenticationFirebase () {
                 if (!snapshot.exists()) {
                     val datosIniciales = mapOf(
                         "dispositivo_nombre" to "Arduino WEMOS D1",
-                        "estado_agregado" to 0
+                        "estado_agregado" to 0,
+                        "voltaje_detectado" to 1.0
                     )
                     sesionRef.setValue(datosIniciales)
                         .addOnSuccessListener {

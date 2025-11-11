@@ -60,64 +60,58 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
 
 @Composable
-fun PantallaInicio(navController: NavController) {
-
-    val activity = LocalContext.current as? Activity
-
-    BackHandler {
-        activity?.finishAffinity()
-        exitProcess(0)
-    }
+fun PantallaDispositivo(navController: NavController) {
 
     Column(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(top = 40.dp),
+        verticalArrangement = Arrangement.Top
     ) {
-        // Parte superior
+        // HEADER
         Column(
-            modifier = Modifier.padding(top = 40.dp),
-            verticalArrangement = Arrangement.Top
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 20.dp),
+            verticalArrangement = Arrangement.Center
         ) {
-
-            val user = FirebaseAuth.getInstance().currentUser
-            val userEmail = user?.email
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
+                // icono de volver
+                IconButton(
+                    onClick = { navController.navigate("Inicio") },
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .size(60.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.KeyboardArrowLeft,
+                        contentDescription = "Volver",
+                        tint = Color.Black,
+                        modifier = Modifier.size(36.dp)
+                    )
+                }
+
+                // Texto centrado
                 Text(
-                    text = "Bienvenido: $userEmail",
-                    fontSize = 14.sp,
+                    text = "Ajustes",
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
-                    modifier = Modifier.align(Alignment.TopStart)
+                    modifier = Modifier.align(Alignment.Center)
                 )
             }
         }
 
-        // Dispositivo agregado
+        // CONTENIDO
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 40.dp),
+                .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-            ) {
-                Text(
-                    text = "Dispositivos Agregados:",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Color.Black,
-                    modifier = Modifier.align(Alignment.TopStart)
-                )
-            }
-
             @Composable
             fun DispositivoAgregado() {
                 val user = FirebaseAuth.getInstance().currentUser
@@ -129,18 +123,15 @@ fun PantallaInicio(navController: NavController) {
                 }
 
                 val (dispositivoDetectado, isLoading, error) =
-                    LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data",
+                        DispositivoData::class.java
+                    )
 
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 40.dp)
-                        .clickable(
-                            indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
-                        ) {
-                            navController.navigate("Dispositivo")
-                        },
+                        .padding(top = 40.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     when {
@@ -192,12 +183,6 @@ fun PantallaInicio(navController: NavController) {
                                                 fontWeight = FontWeight.Bold
                                             )
                                         }
-                                        Icon(
-                                            imageVector = Icons.Default.KeyboardArrowRight,
-                                            contentDescription = "Acceder",
-                                            tint = Color.Black,
-                                            modifier = Modifier.size(36.dp)
-                                        )
                                     }
                                 }
                             }
@@ -208,38 +193,93 @@ fun PantallaInicio(navController: NavController) {
             DispositivoAgregado()
         }
 
-        // Ingresar Dispositivo
+        // DATOS
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 40.dp),
+                .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(0.9f)
-                    .background(Color(0xFFEEEDED), shape = RoundedCornerShape(16.dp))
-                    .padding(60.dp)
-                    .align(Alignment.CenterHorizontally)
-                    .padding(horizontal = 24.dp)
-                    .clickable{
-                        navController.navigate("Agregar")
-                    },
-                contentAlignment = Alignment.Center
+            @Composable
+            fun DispositivoAgregado() {
+                val user = FirebaseAuth.getInstance().currentUser
+                val userId = user?.uid
 
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Añadir",
-                    modifier = Modifier.size(24.dp)
-                )
+                if (userId == null) {
+                    Text("Usuario no loggeado")
+                    return
+                }
+
+                val (dispositivoDetectado, isLoading, error) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data",
+                        DispositivoData::class.java
+                    )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 40.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isLoading -> Text("Cargando...")
+                        error != null -> Text("Error: $error")
+                        else -> {
+                            if (dispositivoDetectado?.estado_agregado == 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .background(
+                                            color = Color(0xFFEEEDED),
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .border(
+                                            width = 2.dp,
+                                            color = Color.Transparent,
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .padding(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start
+                                        ) {
+
+                                            Image(
+                                                painter = painterResource(id = R.drawable.voltaje),
+                                                contentDescription = "Imagen de ejemplo",
+                                                modifier = Modifier
+                                                    .size(40.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            )
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            Text(
+                                                text = "Voltaje Detectado: ${dispositivoDetectado.voltaje_detectado.toString()}",
+                                                style = MaterialTheme.typography.titleLarge,
+                                                color = Color.Black,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
+            DispositivoAgregado()
         }
-
-        BotonesInferiores(navController)
     }
+    BotonesInferiores(navController)
 }
-
-
-// victorvicencio932@gmail.com
-// vitoco2005
