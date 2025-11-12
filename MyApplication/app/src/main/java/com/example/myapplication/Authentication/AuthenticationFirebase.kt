@@ -140,7 +140,8 @@ class AuthenticationFirebase () {
                         "corriente_detectada" to 1.0,
                         "alertas_dispositivo" to mapOf(
                             "estado" to false,
-                            "rango" to 0.0
+                            "rango_minimo" to 0.0,
+                            "rango_maximo" to 0.0
                         )
                     )
                     sesionRef.setValue(datosIniciales)

@@ -194,7 +194,8 @@ private fun DetectarDispositivo(navController : NavController) {
                                     "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
                                     "alertas_dispositivo" to mapOf(
                                         "estado" to false,
-                                        "rango" to 0.0
+                                        "rango_minimo" to 0.0,
+                                        "rango_maximo" to 0.0
                                     )
                                 )
                             )
