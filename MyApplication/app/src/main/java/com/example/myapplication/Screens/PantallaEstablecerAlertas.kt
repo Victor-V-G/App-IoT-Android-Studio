@@ -1,5 +1,7 @@
 package com.example.myapplication.Screens
 
+import android.app.Activity
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -19,6 +21,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -51,9 +54,12 @@ import com.google.firebase.auth.FirebaseAuth
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun PantallaEstablecerAlertas(navController: NavController) {
+
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -221,7 +227,11 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                             )
                                                         )
                                                     )
-                                                }
+                                                },
+                                                colors = ButtonDefaults.buttonColors(
+                                                    containerColor = Color(0xFFD32F2F),
+                                                    contentColor = Color.White
+                                                )
                                             ) {
                                                 Text(
                                                     text = "Apagar"
@@ -303,6 +313,20 @@ fun PantallaEstablecerAlertas(navController: NavController) {
 
                                     Text(
                                         text = "Establecer rangos de alertas",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                    Text(
+                                        text = "Rango minimo establecido: ${alertaDispositivo?.rango_minimo}",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = Color.Black,
+                                        fontWeight = FontWeight.Bold
+                                    )
+
+                                    Text(
+                                        text = "Rango maximo establecido: ${alertaDispositivo?.rango_maximo}",
                                         style = MaterialTheme.typography.titleMedium,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold
@@ -341,23 +365,37 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                         modifier = Modifier.fillMaxWidth(0.9f)
                                     )
 
-                                    //Establecer rangos
                                     Button(
                                         onClick = {
-                                            escribirFirebase(
-                                                field = "sesiones/sesion_$userId/dispositivo_data",
-                                                value = mapOf(
-                                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
-                                                    "estado_agregado" to 1,
-                                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
-                                                    "alertas_dispositivo" to mapOf(
-                                                        "estado" to (alertaDispositivo?.estado),
-                                                        "rango_minimo" to (rangoMinimo.toDoubleOrNull() ?: 0.0),
-                                                        "rango_maximo" to (rangoMaximo.toDoubleOrNull() ?: 0.0),
+                                            val min = rangoMinimo.toDoubleOrNull()
+                                            val max = rangoMaximo.toDoubleOrNull()
 
+                                            when {
+                                                min == null || max == null -> {
+                                                    Toast.makeText(context, "Por favor ingresa ambos rangos numéricos", Toast.LENGTH_SHORT).show()
+                                                }
+
+                                                min >= max -> {
+                                                    Toast.makeText(context, "El rango mínimo no puede ser mayor o igual al rango máximo", Toast.LENGTH_SHORT).show()
+                                                }
+
+                                                else -> {
+                                                    escribirFirebase(
+                                                        field = "sesiones/sesion_$userId/dispositivo_data",
+                                                        value = mapOf(
+                                                            "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                            "estado_agregado" to 1,
+                                                            "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                            "alertas_dispositivo" to mapOf(
+                                                                "estado" to (alertaDispositivo?.estado),
+                                                                "rango_minimo" to min,
+                                                                "rango_maximo" to max
+                                                            )
+                                                        )
                                                     )
-                                                )
-                                            )
+                                                    Toast.makeText(context, "Rangos establecidos correctamente", Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
                                         }
                                     ) {
                                         Text(text = "Establecer")
@@ -381,9 +419,14 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                             )
                                             rangoMinimo = ""
                                             rangoMaximo = ""
-                                        }
+                                        },
+                                        colors = ButtonDefaults.buttonColors(
+                                            containerColor = Color(0xFFD32F2F),
+                                            contentColor = Color.White
+                                        )
                                     ) {
                                         Text(text = "Restablecer")
+
                                     }
                                 }
                             }
