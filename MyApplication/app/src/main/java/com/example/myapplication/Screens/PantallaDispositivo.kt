@@ -567,6 +567,8 @@ fun PantallaDispositivo(navController: NavController) {
                                                 else
                                                     "Cambiar a modo Manual"
                                             )
+
+
                                         }
 
                                         if (datosRele?.modo_uso == 0) {
@@ -635,6 +637,44 @@ fun PantallaDispositivo(navController: NavController) {
                                                     }
                                                 }
                                             }
+                                        } else {
+                                            if (dispositivoDetectado.corriente_detectada > 8.0) {
+                                                escribirFirebase(
+                                                    field = "sesiones/sesion_$userId/dispositivo_data",
+                                                    value = mapOf(
+                                                        "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                        "estado_agregado" to 1,
+                                                        "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                        "alertas_dispositivo" to mapOf(
+                                                            "estado" to false,
+                                                            "rango_minimo" to (alertaDispositivo?.rango_minimo),
+                                                            "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                        ),
+                                                        "datos_rele" to mapOf(
+                                                            "estado_rele" to false, //apaga el rele automaticamente
+                                                            "modo_uso" to datosRele?.modo_uso,
+                                                        )
+                                                    )
+                                                )
+                                            } else {
+                                                escribirFirebase(
+                                                    field = "sesiones/sesion_$userId/dispositivo_data",
+                                                    value = mapOf(
+                                                        "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                        "estado_agregado" to 1,
+                                                        "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                        "alertas_dispositivo" to mapOf(
+                                                            "estado" to false,
+                                                            "rango_minimo" to (alertaDispositivo?.rango_minimo),
+                                                            "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                        ),
+                                                        "datos_rele" to mapOf(
+                                                            "estado_rele" to true, //enciende el rele automaticamente
+                                                            "modo_uso" to datosRele?.modo_uso,
+                                                        )
+                                                    )
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -652,4 +692,4 @@ fun PantallaDispositivo(navController: NavController) {
 //Leer corriente (Completo)
 //Establecer rangos minimos y maximos para alertas (completo)
 //monitorear estado del rele (completo)
-//modo de uso rele manual/automatico
+//modo de uso rele manual/automatico (completo)
