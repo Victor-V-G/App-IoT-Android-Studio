@@ -7,12 +7,19 @@ data class AlertasDispositivo(
     var rango_minimo: Double = 0.0,
     var rango_maximo: Double = 0.0
 )
+
+data class ReleData(
+    var estado_rele: Boolean = false,
+    var modo_uso: Int = 0
+    // 0 manual, 1 automatico
+)
 data class DispositivoData(
     var dispositivo_nombre: String = "",
     var estado_agregado: Int = 0,
     var corriente_detectada: Double = 0.0,
-    var alertas_dispositivo: AlertasDispositivo = AlertasDispositivo() //se agrega en forma de clase para crear un array con los datos definidos
+    var alertas_dispositivo: AlertasDispositivo = AlertasDispositivo(), //se agrega en forma de clase para crear un array con los datos definidos
+    var datos_rele: ReleData = ReleData()
 ) {
-    constructor() : this ("", 0, 0.0, AlertasDispositivo())
+    constructor() : this ("", 0, 0.0, AlertasDispositivo(), ReleData())
 }
 

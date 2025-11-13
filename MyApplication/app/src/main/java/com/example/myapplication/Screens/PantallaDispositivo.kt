@@ -1,6 +1,7 @@
 package com.example.myapplication.Screens
 
 import android.app.Activity
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,6 +25,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Notifications
@@ -50,9 +53,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.example.componentestest.Componentes.Firebase.AlertasDispositivo
 import com.example.componentestest.Componentes.Firebase.DispositivoData
 import com.example.componentestest.Componentes.Firebase.LeerFirebase
+import com.example.componentestest.Componentes.Firebase.ReleData
 import com.example.componentestest.Componentes.Firebase.escribirFirebase
 import com.example.myapplication.Componentes.BotonesInferiores
 import com.example.myapplication.R
@@ -65,7 +71,7 @@ fun PantallaDispositivo(navController: NavController) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(top = 40.dp),
+            .padding(top = 20.dp),
         verticalArrangement = Arrangement.Top
     ) {
         // HEADER
@@ -131,7 +137,7 @@ fun PantallaDispositivo(navController: NavController) {
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 40.dp),
+                        .padding(top = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     when {
@@ -157,7 +163,7 @@ fun PantallaDispositivo(navController: NavController) {
 
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
-                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                        verticalArrangement = Arrangement.spacedBy(2.dp)
                                     ) {
 
                                         Row(
@@ -170,7 +176,7 @@ fun PantallaDispositivo(navController: NavController) {
                                                 painter = painterResource(id = R.drawable.icono_arduino),
                                                 contentDescription = "Imagen de ejemplo",
                                                 modifier = Modifier
-                                                    .size(100.dp)
+                                                    .size(70.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                             )
 
@@ -216,10 +222,16 @@ fun PantallaDispositivo(navController: NavController) {
                         DispositivoData::class.java
                     )
 
+                val (datosRele, isLoadingR, errorR) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data/datos_rele",
+                        ReleData::class.java
+                    )
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 40.dp),
+                        .padding(top = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     when {
@@ -256,7 +268,7 @@ fun PantallaDispositivo(navController: NavController) {
                                                 painter = painterResource(id = R.drawable.voltaje),
                                                 contentDescription = "Imagen de ejemplo",
                                                 modifier = Modifier
-                                                    .size(40.dp)
+                                                    .size(30.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                             )
 
@@ -283,10 +295,23 @@ fun PantallaDispositivo(navController: NavController) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 40.dp),
+                .padding(top = 20.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            val user = FirebaseAuth.getInstance().currentUser
+            val userId = user?.uid
+
+            if (userId == null) {
+                Text("Usuario no loggeado")
+                return
+            }
+
+            val (datosRele, isLoadingR, errorR) =
+                LeerFirebase(
+                    "sesiones/sesion_$userId/dispositivo_data/datos_rele",
+                    ReleData::class.java
+                )
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -336,11 +361,295 @@ fun PantallaDispositivo(navController: NavController) {
                 )
             }
         }
+
+        //Detectar Estado del relé
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 1.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            @Composable
+            fun EstadoRele() {
+                val user = FirebaseAuth.getInstance().currentUser
+                val userId = user?.uid
+
+                if (userId == null) {
+                    Text("Usuario no loggeado")
+                    return
+                }
+
+                val (dispositivoDetectado, isLoading, error) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data",
+                        DispositivoData::class.java
+                    )
+
+                val (datosRele, isLoadingR, errorR) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data/datos_rele",
+                        ReleData::class.java
+                    )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 20.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isLoading -> Text("Cargando...")
+                        error != null -> Text("Error: $error")
+                        else -> {
+                            if (dispositivoDetectado?.estado_agregado == 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .background(
+                                            color = Color(0xFFEEEDED),
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .border(
+                                            width = 2.dp,
+                                            color = Color.Transparent,
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .padding(24.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        //Estado rele
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Start
+                                        ) {
+
+                                            Icon(
+                                                imageVector = Icons.Default.Info,
+                                                contentDescription = "Estado Relé",
+                                                modifier = Modifier
+                                                    .padding(start = 8.dp)
+                                                    .size(26.dp),
+                                                tint = Color.Black
+                                            )
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            if (datosRele?.estado_rele == false ) {
+                                                Text(
+                                                    text = "Estado del Relé: Apagado",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                    color = Color.Black,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            } else {
+                                                Text(
+                                                    text = "Estado del Relé: Encendido",
+                                                    style = MaterialTheme.typography.titleLarge,
+                                                    color = Color.Black,
+                                                    fontWeight = FontWeight.Bold
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            EstadoRele()
+        }
+
+        //modo de uso rele
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .offset(y = (-10).dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            @Composable
+            fun ModoDeUso() {
+                val user = FirebaseAuth.getInstance().currentUser
+                val userId = user?.uid
+
+                if (userId == null) {
+                    Text("Usuario no loggeado")
+                    return
+                }
+
+                val (dispositivoDetectado, isLoading, error) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data",
+                        DispositivoData::class.java
+                    )
+
+                val (alertaDispositivo, isLoadingA, errorA) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data/alertas_dispositivo",
+                        AlertasDispositivo::class.java
+                    )
+
+                val (datosRele, isLoadingR, errorR) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data/datos_rele",
+                        ReleData::class.java
+                    )
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .offset(y = (-10).dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    when {
+                        isLoading -> Text("Cargando...")
+                        error != null -> Text("Error: $error")
+                        else -> {
+                            if (dispositivoDetectado?.estado_agregado == 1) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.9f)
+                                        .background(
+                                            color = Color(0xFFEEEDED),
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .border(
+                                            width = 2.dp,
+                                            color = Color.Transparent,
+                                            shape = RoundedCornerShape(16.dp)
+                                        )
+                                        .padding(24.dp)
+                                ) {
+
+                                    Column(
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.spacedBy(18.dp),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+
+                                        Text(
+                                            text = "Modo de uso Relé",
+                                            style = MaterialTheme.typography.titleLarge,
+                                            color = Color.Black,
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.Center
+                                        )
+
+                                        Button(
+                                            onClick = {
+                                                escribirFirebase(
+                                                    field = "sesiones/sesion_$userId/dispositivo_data",
+                                                    value = mapOf(
+                                                        "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                        "estado_agregado" to 1,
+                                                        "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                        "alertas_dispositivo" to mapOf(
+                                                            "estado" to (alertaDispositivo?.estado),
+                                                            "rango_minimo" to (alertaDispositivo?.rango_minimo),
+                                                            "rango_maximo" to (alertaDispositivo?.rango_maximo)
+                                                        ),
+                                                        "datos_rele" to mapOf(
+                                                            "estado_rele" to (datosRele?.estado_rele),
+                                                            "modo_uso" to if (datosRele?.modo_uso == 0) 1 else 0,
+                                                        )
+                                                    )
+                                                )
+                                            }
+                                        ) {
+                                            Text(
+                                                text = if (datosRele?.modo_uso == 0)
+                                                    "Cambiar a modo automático"
+                                                else
+                                                    "Cambiar a modo Manual"
+                                            )
+                                        }
+
+                                        if (datosRele?.modo_uso == 0) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
+                                            ) {
+
+                                                // BOTÓN ENCENDER / APAGAR
+                                                if (datosRele.estado_rele == false) {
+
+                                                    Button(
+                                                        onClick = {
+                                                            escribirFirebase(
+                                                                field = "sesiones/sesion_$userId/dispositivo_data",
+                                                                value = mapOf(
+                                                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                                    "estado_agregado" to 1,
+                                                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                                    "alertas_dispositivo" to mapOf(
+                                                                        "estado" to true,
+                                                                        "rango_minimo" to (alertaDispositivo?.rango_minimo),
+                                                                        "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                                    ),
+                                                                    "datos_rele" to mapOf(
+                                                                        "estado_rele" to true,
+                                                                        "modo_uso" to datosRele.modo_uso
+                                                                    )
+                                                                )
+                                                            )
+                                                        },
+                                                        modifier = Modifier.weight(1f)
+                                                    ) {
+                                                        Text("Encender")
+                                                    }
+
+                                                } else {
+                                                    Button(
+                                                        onClick = {
+                                                            escribirFirebase(
+                                                                field = "sesiones/sesion_$userId/dispositivo_data",
+                                                                value = mapOf(
+                                                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                                    "estado_agregado" to 1,
+                                                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                                    "alertas_dispositivo" to mapOf(
+                                                                        "estado" to false,
+                                                                        "rango_minimo" to (alertaDispositivo?.rango_minimo),
+                                                                        "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                                    ),
+                                                                    "datos_rele" to mapOf(
+                                                                        "estado_rele" to false,
+                                                                        "modo_uso" to datosRele.modo_uso,
+                                                                    )
+                                                                )
+                                                            )
+                                                        },
+                                                        colors = ButtonDefaults.buttonColors(
+                                                            containerColor = Color(0xFFD32F2F),
+                                                            contentColor = Color.White
+                                                        ),
+                                                        modifier = Modifier.weight(1f)
+                                                    ) {
+                                                        Text("Apagar")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            ModoDeUso()
+        }
     }
     BotonesInferiores(navController)
 
 }
 //Leer corriente (Completo)
-//Establecer rangos minimos y maximos para alertas
-//monitorear estado del rele
-//modo de uso manual/automatico
+//Establecer rangos minimos y maximos para alertas (completo)
+//monitorear estado del rele (completo)
+//modo de uso rele manual/automatico

@@ -196,6 +196,10 @@ private fun DetectarDispositivo(navController : NavController) {
                                         "estado" to false,
                                         "rango_minimo" to 0.0,
                                         "rango_maximo" to 0.0
+                                    ),
+                                    "datos_rele" to mapOf(
+                                        "estado_rele" to false,
+                                        "modo_uso" to 0,
                                     )
                                 )
                             )

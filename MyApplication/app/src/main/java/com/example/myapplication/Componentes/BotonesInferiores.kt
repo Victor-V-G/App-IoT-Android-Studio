@@ -69,7 +69,7 @@ fun BotonesInferiores(navController: NavController) {
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     IconButton(
-                        onClick = { /* Acción futura */ },
+                        onClick = { navController.navigate("Alertas") },
                         modifier = Modifier.size(60.dp)
                     ) {
                         Icon(

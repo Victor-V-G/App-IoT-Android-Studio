@@ -55,6 +55,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.example.componentestest.Componentes.Firebase.ReleData
 
 @Composable
 fun PantallaEstablecerAlertas(navController: NavController) {
@@ -130,6 +131,12 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                         AlertasDispositivo::class.java
                     )
 
+                val (datosRele, isLoadingR, errorR) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data/datos_rele",
+                        ReleData::class.java
+                    )
+
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -202,6 +209,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                                 "estado" to true,
                                                                 "rango_minimo" to (alertaDispositivo?.rango_minimo),
                                                                 "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                            ),
+                                                            "datos_rele" to mapOf(
+                                                                "estado_rele" to (datosRele?.estado_rele),
+                                                                "modo_uso" to (datosRele?.modo_uso),
                                                             )
                                                         )
                                                     )
@@ -224,6 +235,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                                 "estado" to false,
                                                                 "rango_minimo" to (alertaDispositivo.rango_minimo),
                                                                 "rango_maximo" to (alertaDispositivo.rango_maximo),
+                                                            ),
+                                                            "datos_rele" to mapOf(
+                                                                "estado_rele" to (datosRele?.estado_rele),
+                                                                "modo_uso" to (datosRele?.modo_uso),
                                                             )
                                                         )
                                                     )
@@ -272,6 +287,12 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/alertas_dispositivo",
                         AlertasDispositivo::class.java
+                    )
+
+                val (datosRele, isLoadingR, errorR) =
+                    LeerFirebase(
+                        "sesiones/sesion_$userId/dispositivo_data/datos_rele",
+                        ReleData::class.java
                     )
 
                 Box(
@@ -390,6 +411,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                                 "estado" to (alertaDispositivo?.estado),
                                                                 "rango_minimo" to min,
                                                                 "rango_maximo" to max
+                                                            ),
+                                                            "datos_rele" to mapOf(
+                                                                "estado_rele" to (datosRele?.estado_rele),
+                                                                "modo_uso" to (datosRele?.modo_uso),
                                                             )
                                                         )
                                                     )
@@ -414,6 +439,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                         "estado" to (alertaDispositivo?.estado),
                                                         "rango_minimo" to (0.0),
                                                         "rango_maximo" to (0.0),
+                                                    ),
+                                                    "datos_rele" to mapOf(
+                                                        "estado_rele" to (datosRele?.estado_rele),
+                                                        "modo_uso" to (datosRele?.modo_uso),
                                                     )
                                                 )
                                             )

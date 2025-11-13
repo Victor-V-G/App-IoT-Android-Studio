@@ -7,6 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.myapplication.Authentication.AuthenticationFirebase
 import com.example.myapplication.Screens.PantallaAgregar
+import com.example.myapplication.Screens.PantallaAlertas
 import com.example.myapplication.Screens.PantallaDispositivo
 import com.example.myapplication.Screens.PantallaEstablecerAlertas
 import com.example.myapplication.Screens.PantallaInicio
@@ -40,6 +41,9 @@ fun NavegacionApp() {
         }
         composable("EstablecerAlertas"){
             PantallaEstablecerAlertas(navController)
+        }
+        composable("Alertas"){
+            PantallaAlertas(navController)
         }
     }
 }
