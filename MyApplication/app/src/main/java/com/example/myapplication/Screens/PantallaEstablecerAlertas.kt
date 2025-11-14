@@ -2,6 +2,7 @@ package com.example.myapplication.Screens
 
 import android.app.Activity
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -57,9 +58,33 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import com.example.componentestest.Componentes.Firebase.ReleData
 
+// ---------------------------------------------------------------------
+// PANTALLA PARA CONFIGURAR SISTEMA DE ALERTAS
+//
+// Esta pantalla permite:
+// 1) Activar / desactivar alertas (estado boolean en Firebase)
+// 2) Ingresar y validar un rango mínimo de corriente
+// 3) Ingresar y validar un rango máximo de corriente
+// 4) Guardar cambios en Firebase respetando la estructura TOTAL del nodo
+// 5) Restablecer los rangos a 0.0
+//
+// Se interactúa con 3 nodos JSON dentro de dispositivo_data:
+//
+//  - alertas_dispositivo/
+//        estado: Bool
+//        rango_minimo: Double
+//        rango_maximo: Double
+//
+//  - datos_rele/
+//        estado_rele
+//        modo_uso
+//
+//  - corriente_detectada y dispositivo_nombre se preservan siempre.
+// ---------------------------------------------------------------------
 @Composable
 fun PantallaEstablecerAlertas(navController: NavController) {
 
+    // Contexto necesario para usar Toasts (son APIs del sistema Android)
     val context = LocalContext.current
 
     Column(
@@ -68,7 +93,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
             .padding(top = 40.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // HEADER
+
+        // -----------------------------------------------------------------
+        // HEADER: Botón volver + título centrado
+        // -----------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -76,10 +104,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // icono de volver
+
+                // Botón volver
                 IconButton(
                     onClick = { navController.navigate("Dispositivo") },
                     modifier = Modifier
@@ -94,7 +122,7 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                     )
                 }
 
-                // Texto centrado
+                // Título
                 Text(
                     text = "Establecer Alertas",
                     fontSize = 24.sp,
@@ -105,15 +133,20 @@ fun PantallaEstablecerAlertas(navController: NavController) {
             }
         }
 
-        // CONTENIDO
+        // -----------------------------------------------------------------
+        // SECCIÓN 1 — ACTIVAR O DESACTIVAR ALERTAS
+        // -----------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             @Composable
             fun VerificarEstado() {
+
+                // Obtener usuario
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
@@ -122,15 +155,18 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                     return
                 }
 
+                // Lectura de datos base del dispositivo
                 val (dispositivoDetectado, isLoadingD, errorD) =
                     LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
 
+                // Lectura del nodo alertas_dispositivo
                 val (alertaDispositivo, isLoading, error) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/alertas_dispositivo",
                         AlertasDispositivo::class.java
                     )
 
+                // Lectura del nodo datos_rele (para preservarlo en escritura)
                 val (datosRele, isLoadingR, errorR) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/datos_rele",
@@ -143,26 +179,21 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                         .padding(top = 40.dp),
                     contentAlignment = Alignment.Center
                 ) {
+
                     when {
                         isLoading -> Text("Cargando...")
                         error != null -> Text("Error: $error")
+
                         else -> {
-                            //recuperar el estado (si es false o true)
+
+                            // estado de la alerta (true = encendida)
                             val estado = alertaDispositivo?.estado ?: false
-                            val textoEstado = if (estado) "Encendido" else "Apagado"
 
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(0.9f)
-                                    .background(
-                                        color = Color(0xFFEEEDED),
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .border(
-                                        width = 2.dp,
-                                        color = Color.Transparent,
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
+                                    .background(Color(0xFFEEEDED), RoundedCornerShape(16.dp))
+                                    .border(2.dp, Color.Transparent, RoundedCornerShape(16.dp))
                                     .padding(24.dp),
                                 contentAlignment = Alignment.Center
                             ) {
@@ -178,9 +209,10 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                         horizontalArrangement = Arrangement.spacedBy(20.dp)
                                     ) {
 
+                                        // Icono
                                         Icon(
                                             imageVector = Icons.Default.Notifications,
-                                            contentDescription = "Establecer Alertas",
+                                            contentDescription = "Alertas",
                                             modifier = Modifier
                                                 .padding(start = 30.dp)
                                                 .size(46.dp),
@@ -189,6 +221,7 @@ fun PantallaEstablecerAlertas(navController: NavController) {
 
                                         Spacer(modifier = Modifier.width(12.dp))
 
+                                        // Texto "Alertas:"
                                         Text(
                                             text = "Alertas:",
                                             style = MaterialTheme.typography.titleMedium,
@@ -196,49 +229,71 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                             fontWeight = FontWeight.Bold
                                         )
 
-                                        if (estado == false) {
+                                        // Botón Encender/Apagar
+                                        if (!estado) {
+
+                                            // ---------------------------------------------------------
+                                            // BOTÓN → ENCENDER ALERTAS
+                                            //
+                                            // Lógica:
+                                            //   Se actualiza SOLO el nodo alertas_dispositivo.estado = true
+                                            //   PERO Firebase requiere reescribir la estructura completa.
+                                            //
+                                            // Se preserva:
+                                            // - nombre del dispositivo
+                                            // - corriente detectada
+                                            // - datos del relé
+                                            // - rangos actuales
+                                            // ---------------------------------------------------------
                                             Button(
                                                 onClick = {
                                                     escribirFirebase(
                                                         field = "sesiones/sesion_$userId/dispositivo_data",
                                                         value = mapOf(
-                                                            "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                            "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre
+                                                                ?: "Desconocido"),
                                                             "estado_agregado" to 1,
-                                                            "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                            "corriente_detectada" to (dispositivoDetectado?.corriente_detectada
+                                                                ?: 0),
                                                             "alertas_dispositivo" to mapOf(
-                                                                "estado" to true,
-                                                                "rango_minimo" to (alertaDispositivo?.rango_minimo),
-                                                                "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                                "estado" to true, // aquí se activa
+                                                                "rango_minimo" to alertaDispositivo?.rango_minimo,
+                                                                "rango_maximo" to alertaDispositivo?.rango_maximo
                                                             ),
                                                             "datos_rele" to mapOf(
-                                                                "estado_rele" to (datosRele?.estado_rele),
-                                                                "modo_uso" to (datosRele?.modo_uso),
+                                                                "estado_rele" to datosRele?.estado_rele,
+                                                                "modo_uso" to datosRele?.modo_uso
                                                             )
                                                         )
                                                     )
                                                 }
                                             ) {
-                                                Text(
-                                                    text = "Encender"
-                                                )
+                                                Text("Encender")
                                             }
+
                                         } else {
+
+                                            // ---------------------------------------------------------
+                                            // BOTÓN → APAGAR ALERTAS
+                                            // ---------------------------------------------------------
                                             Button(
                                                 onClick = {
                                                     escribirFirebase(
                                                         field = "sesiones/sesion_$userId/dispositivo_data",
                                                         value = mapOf(
-                                                            "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                            "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre
+                                                                ?: "Desconocido"),
                                                             "estado_agregado" to 1,
-                                                            "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                            "corriente_detectada" to (dispositivoDetectado?.corriente_detectada
+                                                                ?: 0),
                                                             "alertas_dispositivo" to mapOf(
                                                                 "estado" to false,
-                                                                "rango_minimo" to (alertaDispositivo.rango_minimo),
-                                                                "rango_maximo" to (alertaDispositivo.rango_maximo),
+                                                                "rango_minimo" to (alertaDispositivo?.rango_minimo),
+                                                                "rango_maximo" to (alertaDispositivo?.rango_maximo)
                                                             ),
                                                             "datos_rele" to mapOf(
-                                                                "estado_rele" to (datosRele?.estado_rele),
-                                                                "modo_uso" to (datosRele?.modo_uso),
+                                                                "estado_rele" to datosRele?.estado_rele,
+                                                                "modo_uso" to datosRele?.modo_uso
                                                             )
                                                         )
                                                     )
@@ -248,9 +303,7 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                     contentColor = Color.White
                                                 )
                                             ) {
-                                                Text(
-                                                    text = "Apagar"
-                                                )
+                                                Text("Apagar")
                                             }
                                         }
                                     }
@@ -260,18 +313,23 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                     }
                 }
             }
+
             VerificarEstado()
         }
 
-        // Establecer rangos mínimos y máximos de corriente para alerta
+        // -----------------------------------------------------------------
+        // SECCIÓN 2 — ACTUALIZAR RANGO MÍNIMO Y MÁXIMO DE ALERTA
+        // -----------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             @Composable
             fun EstablecerEstado() {
+
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
@@ -280,6 +338,7 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                     return
                 }
 
+                // Leer todos los nodos que deben preservarse en escritura
                 val (dispositivoDetectado, isLoadingD, errorD) =
                     LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
 
@@ -301,37 +360,32 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                         .padding(top = 40.dp),
                     contentAlignment = Alignment.Center
                 ) {
+
                     when {
                         isLoading -> Text("Cargando...")
                         error != null -> Text("Error: $error")
-                        else -> {
-                            // Recuperar el estado (si es false o true)
-                            val estado = alertaDispositivo?.estado ?: false
-                            val textoEstado = if (estado) "Encendido" else "Apagado"
 
-                            // Estado local del campo de rango mínimo y maximo
+                        else -> {
+
+                            // Estados locales de los campos numéricos
                             var rangoMinimo by rememberSaveable { mutableStateOf("") }
                             var rangoMaximo by rememberSaveable { mutableStateOf("") }
+
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth(0.9f)
-                                    .background(
-                                        color = Color(0xFFEEEDED),
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
-                                    .border(
-                                        width = 2.dp,
-                                        color = Color.Transparent,
-                                        shape = RoundedCornerShape(16.dp)
-                                    )
+                                    .background(Color(0xFFEEEDED), RoundedCornerShape(16.dp))
+                                    .border(2.dp, Color.Transparent, RoundedCornerShape(16.dp))
                                     .padding(24.dp),
                                 contentAlignment = Alignment.Center
                             ) {
+
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
 
+                                    // Título de la sección
                                     Text(
                                         text = "Establecer rangos de alertas",
                                         style = MaterialTheme.typography.titleLarge,
@@ -339,53 +393,63 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                         fontWeight = FontWeight.Bold
                                     )
 
+                                    // Texto mostrando valores actuales
                                     Text(
-                                        text = "Rango minimo establecido: ${alertaDispositivo?.rango_minimo}",
+                                        text = "Rango mínimo establecido: ${alertaDispositivo?.rango_minimo}",
                                         style = MaterialTheme.typography.titleMedium,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold
                                     )
 
                                     Text(
-                                        text = "Rango maximo establecido: ${alertaDispositivo?.rango_maximo}",
+                                        text = "Rango máximo establecido: ${alertaDispositivo?.rango_maximo}",
                                         style = MaterialTheme.typography.titleMedium,
                                         color = Color.Black,
                                         fontWeight = FontWeight.Bold
                                     )
 
-                                    // Campo para rango mínimo de corriente
+                                    // ---------------------------------------------------------
+                                    // INPUT RANGO MIN
+                                    // Permite SOLO números y punto decimal
+                                    // ---------------------------------------------------------
                                     OutlinedTextField(
                                         value = rangoMinimo,
                                         onValueChange = { input ->
-                                            // Permite solo números y punto decimal
                                             if (input.isEmpty() || input.matches(Regex("^\\d*\\.?\\d*\$"))) {
                                                 rangoMinimo = input
                                             }
                                         },
                                         label = { Text("Rango mínimo de corriente (A)") },
                                         singleLine = true,
-                                        keyboardOptions = KeyboardOptions.Default.copy(
-                                            keyboardType = KeyboardType.Number
-                                        ),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         modifier = Modifier.fillMaxWidth(0.9f)
                                     )
 
+                                    // ---------------------------------------------------------
+                                    // INPUT RANGO MAX
+                                    // ---------------------------------------------------------
                                     OutlinedTextField(
                                         value = rangoMaximo,
                                         onValueChange = { input ->
-                                            // Permite solo números y punto decimal
                                             if (input.isEmpty() || input.matches(Regex("^\\d*\\.?\\d*\$"))) {
                                                 rangoMaximo = input
                                             }
                                         },
-                                        label = { Text("Rango maximo de corriente (A)") },
+                                        label = { Text("Rango máximo de corriente (A)") },
                                         singleLine = true,
-                                        keyboardOptions = KeyboardOptions.Default.copy(
-                                            keyboardType = KeyboardType.Number
-                                        ),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                                         modifier = Modifier.fillMaxWidth(0.9f)
                                     )
 
+                                    // ---------------------------------------------------------
+                                    // BOTÓN GUARDAR RANGOS
+                                    //
+                                    // Validaciones aplicadas:
+                                    // - ambos campos deben tener números válidos
+                                    // - min < max (no se permiten min >= max)
+                                    //
+                                    // Si es válido → se escribe el nodo COMPLETO en Firebase.
+                                    // ---------------------------------------------------------
                                     Button(
                                         onClick = {
                                             val min = rangoMinimo.toDoubleOrNull()
@@ -401,51 +465,60 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                                 }
 
                                                 else -> {
+
+                                                    // Escritura en Firebase de toda la estructura
                                                     escribirFirebase(
                                                         field = "sesiones/sesion_$userId/dispositivo_data",
                                                         value = mapOf(
-                                                            "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                            "dispositivo_nombre" to dispositivoDetectado?.dispositivo_nombre,
                                                             "estado_agregado" to 1,
-                                                            "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                            "corriente_detectada" to dispositivoDetectado?.corriente_detectada,
                                                             "alertas_dispositivo" to mapOf(
-                                                                "estado" to (alertaDispositivo?.estado),
-                                                                "rango_minimo" to min,
-                                                                "rango_maximo" to max
+                                                                "estado" to alertaDispositivo?.estado,
+                                                                "rango_minimo" to min, // se actualiza
+                                                                "rango_maximo" to max  // se actualiza
                                                             ),
                                                             "datos_rele" to mapOf(
-                                                                "estado_rele" to (datosRele?.estado_rele),
-                                                                "modo_uso" to (datosRele?.modo_uso),
+                                                                "estado_rele" to datosRele?.estado_rele,
+                                                                "modo_uso" to datosRele?.modo_uso
                                                             )
                                                         )
                                                     )
+
                                                     Toast.makeText(context, "Rangos establecidos correctamente", Toast.LENGTH_SHORT).show()
                                                 }
                                             }
                                         }
                                     ) {
-                                        Text(text = "Establecer")
+                                        Text("Establecer")
                                     }
 
-                                    //Restablecer rangos
+                                    // ---------------------------------------------------------
+                                    // BOTÓN RESTABLECER
+                                    //
+                                    // Vuelve ambos rangos a 0.0
+                                    // Además limpia los campos del usuario.
+                                    // ---------------------------------------------------------
                                     Button(
                                         onClick = {
                                             escribirFirebase(
                                                 field = "sesiones/sesion_$userId/dispositivo_data",
                                                 value = mapOf(
-                                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                    "dispositivo_nombre" to dispositivoDetectado?.dispositivo_nombre,
                                                     "estado_agregado" to 1,
-                                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                    "corriente_detectada" to dispositivoDetectado?.corriente_detectada,
                                                     "alertas_dispositivo" to mapOf(
-                                                        "estado" to (alertaDispositivo?.estado),
-                                                        "rango_minimo" to (0.0),
-                                                        "rango_maximo" to (0.0),
+                                                        "estado" to alertaDispositivo?.estado,
+                                                        "rango_minimo" to 0.0,
+                                                        "rango_maximo" to 0.0
                                                     ),
                                                     "datos_rele" to mapOf(
-                                                        "estado_rele" to (datosRele?.estado_rele),
-                                                        "modo_uso" to (datosRele?.modo_uso),
+                                                        "estado_rele" to datosRele?.estado_rele,
+                                                        "modo_uso" to datosRele?.modo_uso
                                                     )
                                                 )
                                             )
+
                                             rangoMinimo = ""
                                             rangoMaximo = ""
                                         },
@@ -454,8 +527,7 @@ fun PantallaEstablecerAlertas(navController: NavController) {
                                             contentColor = Color.White
                                         )
                                     ) {
-                                        Text(text = "Restablecer")
-
+                                        Text("Restablecer")
                                     }
                                 }
                             }
@@ -466,8 +538,8 @@ fun PantallaEstablecerAlertas(navController: NavController) {
 
             EstablecerEstado()
         }
-
     }
 
+    // Barra inferior reutilizable
     BotonesInferiores(navController)
 }

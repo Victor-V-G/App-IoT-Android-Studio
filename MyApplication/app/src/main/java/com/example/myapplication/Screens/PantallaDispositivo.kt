@@ -65,6 +65,19 @@ import com.example.myapplication.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
 
+// ---------------------------------------------------------------------
+// PANTALLA PRINCIPAL DE AJUSTES DEL DISPOSITIVO
+//
+// Esta pantalla muestra:
+// - Información del dispositivo agregado
+// - Corriente detectada
+// - Estado del relé
+// - Modo de uso del relé (manual / automático)
+// - Acceso a pantalla de configuraciones de alerta
+//
+// Toda la información se obtiene desde Firebase en tiempo real con LeerFirebase(),
+// el cual devuelve (dato, isLoading, error).
+// ---------------------------------------------------------------------
 @Composable
 fun PantallaDispositivo(navController: NavController) {
 
@@ -74,7 +87,11 @@ fun PantallaDispositivo(navController: NavController) {
             .padding(top = 20.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // HEADER
+
+        // -------------------------------------------------------------
+        // HEADER DE LA PANTALLA
+        // Contiene un botón de volver y el título "Ajustes"
+        // -------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -82,10 +99,9 @@ fun PantallaDispositivo(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // icono de volver
+                // Botón para volver a Inicio
                 IconButton(
                     onClick = { navController.navigate("Inicio") },
                     modifier = Modifier
@@ -100,7 +116,7 @@ fun PantallaDispositivo(navController: NavController) {
                     )
                 }
 
-                // Texto centrado
+                // Título centrado
                 Text(
                     text = "Ajustes",
                     fontSize = 24.sp,
@@ -111,23 +127,31 @@ fun PantallaDispositivo(navController: NavController) {
             }
         }
 
-        // CONTENIDO
+        // ---------------------------------------------------------------------
+        // SECCIÓN 1: DISPOSITIVO AGREGADO
+        // Muestra la foto y el nombre del dispositivo si estado_agregado == 1
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             @Composable
             fun DispositivoAgregado() {
+
+                // Obtener usuario actual
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
+                // Validar sesión
                 if (userId == null) {
                     Text("Usuario no loggeado")
                     return
                 }
 
+                // Leer información del dispositivo desde Firebase
                 val (dispositivoDetectado, isLoading, error) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data",
@@ -140,11 +164,16 @@ fun PantallaDispositivo(navController: NavController) {
                         .padding(top = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
+
+                    // Lógica visible dependiendo del estado de carga
                     when {
-                        isLoading -> Text("Cargando...")
-                        error != null -> Text("Error: $error")
+                        isLoading -> Text("Cargando...") // esperando datos
+                        error != null -> Text("Error: $error") // error en Firebase
+
                         else -> {
+                            // Mostrar solo si el dispositivo ya fue agregado
                             if (dispositivoDetectado?.estado_agregado == 1) {
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
@@ -160,21 +189,20 @@ fun PantallaDispositivo(navController: NavController) {
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(2.dp)
                                     ) {
 
+                                        // Mostrar foto + nombre del dispositivo
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Start
                                         ) {
-
                                             Image(
                                                 painter = painterResource(id = R.drawable.icono_arduino),
-                                                contentDescription = "Imagen de ejemplo",
+                                                contentDescription = "Imagen Arduino",
                                                 modifier = Modifier
                                                     .size(70.dp)
                                                     .clip(RoundedCornerShape(12.dp))
@@ -196,18 +224,24 @@ fun PantallaDispositivo(navController: NavController) {
                     }
                 }
             }
+
             DispositivoAgregado()
         }
 
-        //Detectar Corriente
+        // ---------------------------------------------------------------------
+        // SECCIÓN 2: CORRIENTE DETECTADA
+        // Muestra la corriente actual reportada por el sensor
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             @Composable
             fun DispositivoAgregado() {
+
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
@@ -216,12 +250,14 @@ fun PantallaDispositivo(navController: NavController) {
                     return
                 }
 
+                // Leer dispositivo
                 val (dispositivoDetectado, isLoading, error) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data",
                         DispositivoData::class.java
                     )
 
+                // Leer datos del relé
                 val (datosRele, isLoadingR, errorR) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/datos_rele",
@@ -237,8 +273,11 @@ fun PantallaDispositivo(navController: NavController) {
                     when {
                         isLoading -> Text("Cargando...")
                         error != null -> Text("Error: $error")
+
                         else -> {
                             if (dispositivoDetectado?.estado_agregado == 1) {
+
+                                // Caja de datos de corriente
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
@@ -254,19 +293,22 @@ fun PantallaDispositivo(navController: NavController) {
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
+
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        //Corriente Detectada
+
+                                        // Fila corriente detectada
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
                                             horizontalArrangement = Arrangement.Start
                                         ) {
+
                                             Image(
                                                 painter = painterResource(id = R.drawable.voltaje),
-                                                contentDescription = "Imagen de ejemplo",
+                                                contentDescription = "Voltaje",
                                                 modifier = Modifier
                                                     .size(30.dp)
                                                     .clip(RoundedCornerShape(12.dp))
@@ -275,7 +317,7 @@ fun PantallaDispositivo(navController: NavController) {
                                             Spacer(modifier = Modifier.width(12.dp))
 
                                             Text(
-                                                text = "Corriente Detectada: ${dispositivoDetectado.corriente_detectada.toString()}",
+                                                text = "Corriente Detectada: ${dispositivoDetectado.corriente_detectada}",
                                                 style = MaterialTheme.typography.titleLarge,
                                                 color = Color.Black,
                                                 fontWeight = FontWeight.Bold
@@ -288,10 +330,14 @@ fun PantallaDispositivo(navController: NavController) {
                     }
                 }
             }
+
             DispositivoAgregado()
         }
 
-        // Establecer alertas
+        // ---------------------------------------------------------------------
+        // SECCIÓN 3: BOTÓN PARA IR A ESTABLECER ALERTAS
+        // Caja clickeable completa → navega a la pantalla de alertas
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -299,6 +345,7 @@ fun PantallaDispositivo(navController: NavController) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+
             val user = FirebaseAuth.getInstance().currentUser
             val userId = user?.uid
 
@@ -307,11 +354,13 @@ fun PantallaDispositivo(navController: NavController) {
                 return
             }
 
+            // Leer datos del relé (no se muestran aquí, pero se usan)
             val (datosRele, isLoadingR, errorR) =
                 LeerFirebase(
                     "sesiones/sesion_$userId/dispositivo_data/datos_rele",
                     ReleData::class.java
                 )
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -325,23 +374,25 @@ fun PantallaDispositivo(navController: NavController) {
                         shape = RoundedCornerShape(16.dp)
                     )
                     .padding(vertical = 16.dp)
-                    .clickable(
-                        indication = null,
+                    .clickable( // Caja completa clickeable
+                        indication = null, // sin animación ripple
                         interactionSource = remember { MutableInteractionSource() }
                     ) {
                         navController.navigate("EstablecerAlertas")
                     },
                 contentAlignment = Alignment.Center
             ) {
+
                 Icon(
                     imageVector = Icons.Default.Notifications,
-                    contentDescription = "Establecer Alertas",
+                    contentDescription = "Alertas",
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .padding(start = 30.dp)
                         .size(36.dp),
                     tint = Color.Black
                 )
+
                 Text(
                     text = "Establecer Alertas",
                     style = MaterialTheme.typography.titleLarge,
@@ -352,7 +403,7 @@ fun PantallaDispositivo(navController: NavController) {
 
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowRight,
-                    contentDescription = "Establecer Alertas",
+                    contentDescription = "Ir a alertas",
                     modifier = Modifier
                         .align(Alignment.CenterStart)
                         .padding(start = 320.dp)
@@ -362,15 +413,20 @@ fun PantallaDispositivo(navController: NavController) {
             }
         }
 
-        //Detectar Estado del relé
+        // ---------------------------------------------------------------------
+        // SECCIÓN 4: ESTADO DEL RELÉ
+        // Muestra "Apagado" o "Encendido" según el dato almacenado en Firebase
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             @Composable
             fun EstadoRele() {
+
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
@@ -397,11 +453,14 @@ fun PantallaDispositivo(navController: NavController) {
                         .padding(top = 20.dp),
                     contentAlignment = Alignment.Center
                 ) {
+
                     when {
                         isLoading -> Text("Cargando...")
                         error != null -> Text("Error: $error")
+
                         else -> {
                             if (dispositivoDetectado?.estado_agregado == 1) {
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
@@ -417,11 +476,12 @@ fun PantallaDispositivo(navController: NavController) {
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
+
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        //Estado rele
+
                                         Row(
                                             modifier = Modifier.fillMaxWidth(),
                                             verticalAlignment = Alignment.CenterVertically,
@@ -430,7 +490,7 @@ fun PantallaDispositivo(navController: NavController) {
 
                                             Icon(
                                                 imageVector = Icons.Default.Info,
-                                                contentDescription = "Estado Relé",
+                                                contentDescription = "Info Rele",
                                                 modifier = Modifier
                                                     .padding(start = 8.dp)
                                                     .size(26.dp),
@@ -439,7 +499,8 @@ fun PantallaDispositivo(navController: NavController) {
 
                                             Spacer(modifier = Modifier.width(12.dp))
 
-                                            if (datosRele?.estado_rele == false ) {
+                                            // Estado apagado o encendido
+                                            if (datosRele?.estado_rele == false) {
                                                 Text(
                                                     text = "Estado del Relé: Apagado",
                                                     style = MaterialTheme.typography.titleLarge,
@@ -462,18 +523,28 @@ fun PantallaDispositivo(navController: NavController) {
                     }
                 }
             }
+
             EstadoRele()
         }
 
-        //modo de uso rele
+        // ---------------------------------------------------------------------
+        // SECCIÓN 5: MODO DE USO DEL RELÉ
+        // Permite cambiar entre:
+        // - modo manual → usuario controla ON/OFF
+        // - modo automático → lógica automática en función de la corriente
+        //
+        // Esta es la sección más compleja por el manejo de Firebase.
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .offset(y = (-10).dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             @Composable
             fun ModoDeUso() {
+
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
@@ -482,18 +553,21 @@ fun PantallaDispositivo(navController: NavController) {
                     return
                 }
 
+                // Leer datos del dispositivo
                 val (dispositivoDetectado, isLoading, error) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data",
                         DispositivoData::class.java
                     )
 
+                // Leer alertas configuradas
                 val (alertaDispositivo, isLoadingA, errorA) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/alertas_dispositivo",
                         AlertasDispositivo::class.java
                     )
 
+                // Leer datos del relé
                 val (datosRele, isLoadingR, errorR) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/datos_rele",
@@ -506,11 +580,16 @@ fun PantallaDispositivo(navController: NavController) {
                         .offset(y = (-10).dp),
                     contentAlignment = Alignment.Center
                 ) {
+
                     when {
                         isLoading -> Text("Cargando...")
                         error != null -> Text("Error: $error")
+
                         else -> {
+
                             if (dispositivoDetectado?.estado_agregado == 1) {
+
+                                // Caja contenedora de TODA la lógica de modo
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
@@ -532,6 +611,7 @@ fun PantallaDispositivo(navController: NavController) {
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
 
+                                        // Título
                                         Text(
                                             text = "Modo de uso Relé",
                                             style = MaterialTheme.typography.titleLarge,
@@ -540,59 +620,83 @@ fun PantallaDispositivo(navController: NavController) {
                                             textAlign = TextAlign.Center
                                         )
 
+                                        // BOTÓN PARA CAMBIAR MODO (manual / automático)
                                         Button(
                                             onClick = {
+
+                                                // -----------------------------------------------
+                                                // CAMBIO DE MODO DEL RELÉ
+                                                //
+                                                // modo_uso:
+                                                // 0 → manual
+                                                // 1 → automático
+                                                //
+                                                // Se invierte el valor en Firebase:
+                                                // si es 0 pasa a 1, si es 1 pasa a 0.
+                                                //
+                                                // Importante:
+                                                // escribirFirebase() sobrescribe todo el objeto,
+                                                // por eso se reconstruye toda la estructura exacta.
+                                                // -----------------------------------------------
                                                 escribirFirebase(
                                                     field = "sesiones/sesion_$userId/dispositivo_data",
                                                     value = mapOf(
-                                                        "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                        "dispositivo_nombre" to (dispositivoDetectado.dispositivo_nombre),
                                                         "estado_agregado" to 1,
-                                                        "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                        "corriente_detectada" to dispositivoDetectado.corriente_detectada,
                                                         "alertas_dispositivo" to mapOf(
-                                                            "estado" to (alertaDispositivo?.estado),
-                                                            "rango_minimo" to (alertaDispositivo?.rango_minimo),
-                                                            "rango_maximo" to (alertaDispositivo?.rango_maximo)
+                                                            "estado" to alertaDispositivo?.estado,
+                                                            "rango_minimo" to alertaDispositivo?.rango_minimo,
+                                                            "rango_maximo" to alertaDispositivo?.rango_maximo
                                                         ),
                                                         "datos_rele" to mapOf(
-                                                            "estado_rele" to (datosRele?.estado_rele),
-                                                            "modo_uso" to if (datosRele?.modo_uso == 0) 1 else 0,
+                                                            "estado_rele" to datosRele?.estado_rele,
+                                                            "modo_uso" to if (datosRele?.modo_uso == 0) 1 else 0
                                                         )
                                                     )
                                                 )
                                             }
                                         ) {
+
+                                            // Texto dinámico del botón
                                             Text(
-                                                text = if (datosRele?.modo_uso == 0)
-                                                    "Cambiar a modo automático"
-                                                else
-                                                    "Cambiar a modo Manual"
+                                                text =
+                                                    if (datosRele?.modo_uso == 0)
+                                                        "Cambiar a modo automático"
+                                                    else
+                                                        "Cambiar a modo Manual"
                                             )
-
-
                                         }
 
+                                        // ---------------------------------------------------------
+                                        // LÓGICA DEL MODO MANUAL:
+                                        // El usuario controla directamente el estado del relé.
+                                        // ---------------------------------------------------------
                                         if (datosRele?.modo_uso == 0) {
+
                                             Row(
                                                 modifier = Modifier.fillMaxWidth(),
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 verticalAlignment = Alignment.CenterVertically
                                             ) {
 
-                                                // BOTÓN ENCENDER / APAGAR
+                                                // Si el relé está APAGADO → mostrar botón Encender
                                                 if (datosRele.estado_rele == false) {
 
                                                     Button(
                                                         onClick = {
+
+                                                            // Se enciende el relé manualmente
                                                             escribirFirebase(
                                                                 field = "sesiones/sesion_$userId/dispositivo_data",
                                                                 value = mapOf(
-                                                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                                    "dispositivo_nombre" to dispositivoDetectado.dispositivo_nombre,
                                                                     "estado_agregado" to 1,
-                                                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                                    "corriente_detectada" to dispositivoDetectado.corriente_detectada,
                                                                     "alertas_dispositivo" to mapOf(
                                                                         "estado" to true,
-                                                                        "rango_minimo" to (alertaDispositivo?.rango_minimo),
-                                                                        "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                                        "rango_minimo" to alertaDispositivo?.rango_minimo,
+                                                                        "rango_maximo" to alertaDispositivo?.rango_maximo
                                                                     ),
                                                                     "datos_rele" to mapOf(
                                                                         "estado_rele" to true,
@@ -606,23 +710,28 @@ fun PantallaDispositivo(navController: NavController) {
                                                         Text("Encender")
                                                     }
 
-                                                } else {
+                                                }
+                                                // Si está ENCENDIDO → mostrar botón Apagar
+                                                else {
+
                                                     Button(
                                                         onClick = {
+
+                                                            // Se apaga manualmente
                                                             escribirFirebase(
                                                                 field = "sesiones/sesion_$userId/dispositivo_data",
                                                                 value = mapOf(
-                                                                    "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                                    "dispositivo_nombre" to dispositivoDetectado.dispositivo_nombre,
                                                                     "estado_agregado" to 1,
-                                                                    "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                                    "corriente_detectada" to dispositivoDetectado.corriente_detectada,
                                                                     "alertas_dispositivo" to mapOf(
                                                                         "estado" to false,
-                                                                        "rango_minimo" to (alertaDispositivo?.rango_minimo),
-                                                                        "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                                        "rango_minimo" to alertaDispositivo?.rango_minimo,
+                                                                        "rango_maximo" to alertaDispositivo?.rango_maximo
                                                                     ),
                                                                     "datos_rele" to mapOf(
                                                                         "estado_rele" to false,
-                                                                        "modo_uso" to datosRele.modo_uso,
+                                                                        "modo_uso" to datosRele.modo_uso
                                                                     )
                                                                 )
                                                             )
@@ -637,40 +746,60 @@ fun PantallaDispositivo(navController: NavController) {
                                                     }
                                                 }
                                             }
-                                        } else {
+
+                                        }
+
+                                        // ---------------------------------------------------------
+                                        // LÓGICA DEL MODO AUTOMÁTICO
+                                        // El relé se controla SOLO según la corriente detectada
+                                        //
+                                        // Reglas aplicadas:
+                                        // - Si corriente > 8.0 → relé se APAGA automáticamente
+                                        // - Si corriente ≤ 8.0 → relé se ENCIENDE automáticamente
+                                        //
+                                        // Esto actúa como protección por sobrecorriente.
+                                        // ---------------------------------------------------------
+                                        else {
+
+                                            // Regla de automatización:
                                             if (dispositivoDetectado.corriente_detectada > 8.0) {
+
+                                                // Apaga automáticamente el relé
                                                 escribirFirebase(
                                                     field = "sesiones/sesion_$userId/dispositivo_data",
                                                     value = mapOf(
-                                                        "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                        "dispositivo_nombre" to dispositivoDetectado.dispositivo_nombre,
                                                         "estado_agregado" to 1,
-                                                        "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                        "corriente_detectada" to dispositivoDetectado.corriente_detectada,
                                                         "alertas_dispositivo" to mapOf(
                                                             "estado" to false,
-                                                            "rango_minimo" to (alertaDispositivo?.rango_minimo),
-                                                            "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                            "rango_minimo" to alertaDispositivo?.rango_minimo,
+                                                            "rango_maximo" to alertaDispositivo?.rango_maximo
                                                         ),
                                                         "datos_rele" to mapOf(
-                                                            "estado_rele" to false, //apaga el rele automaticamente
-                                                            "modo_uso" to datosRele?.modo_uso,
+                                                            "estado_rele" to false,
+                                                            "modo_uso" to datosRele?.modo_uso
                                                         )
                                                     )
                                                 )
+
                                             } else {
+
+                                                // Enciende automáticamente el relé
                                                 escribirFirebase(
                                                     field = "sesiones/sesion_$userId/dispositivo_data",
                                                     value = mapOf(
-                                                        "dispositivo_nombre" to (dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"),
+                                                        "dispositivo_nombre" to dispositivoDetectado.dispositivo_nombre,
                                                         "estado_agregado" to 1,
-                                                        "corriente_detectada" to (dispositivoDetectado?.corriente_detectada ?: 0),
+                                                        "corriente_detectada" to dispositivoDetectado.corriente_detectada,
                                                         "alertas_dispositivo" to mapOf(
                                                             "estado" to false,
-                                                            "rango_minimo" to (alertaDispositivo?.rango_minimo),
-                                                            "rango_maximo" to (alertaDispositivo?.rango_maximo),
+                                                            "rango_minimo" to alertaDispositivo?.rango_minimo,
+                                                            "rango_maximo" to alertaDispositivo?.rango_maximo
                                                         ),
                                                         "datos_rele" to mapOf(
-                                                            "estado_rele" to true, //enciende el rele automaticamente
-                                                            "modo_uso" to datosRele?.modo_uso,
+                                                            "estado_rele" to true,
+                                                            "modo_uso" to datosRele?.modo_uso
                                                         )
                                                     )
                                                 )
@@ -683,13 +812,11 @@ fun PantallaDispositivo(navController: NavController) {
                     }
                 }
             }
+
             ModoDeUso()
         }
     }
-    BotonesInferiores(navController)
 
+    // Barra inferior reutilizable en toda la app
+    BotonesInferiores(navController)
 }
-//Leer corriente (Completo)
-//Establecer rangos minimos y maximos para alertas (completo)
-//monitorear estado del rele (completo)
-//modo de uso rele manual/automatico (completo)

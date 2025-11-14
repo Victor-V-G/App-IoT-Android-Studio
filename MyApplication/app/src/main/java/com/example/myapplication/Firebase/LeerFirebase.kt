@@ -38,12 +38,10 @@ fun <T> LeerFirebase(
     val myRef = database.getReference(field)
 
     LaunchedEffect(field) {
-        println("hola")
 
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 try {
-                    println("holaListener")
                     val value = snapshot.getValue(valueType)
                     currentValue = value
                     isLoading = false

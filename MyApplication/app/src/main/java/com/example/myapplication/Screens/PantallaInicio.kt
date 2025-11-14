@@ -59,33 +59,62 @@ import com.example.myapplication.R
 import com.google.firebase.auth.FirebaseAuth
 import kotlin.system.exitProcess
 
+// -----------------------------------------------------------------------------
+// PANTALLA PRINCIPAL (HOME)
+// Muestra:
+//   - correo del usuario logueado
+//   - dispositivo agregado (si existe)
+//   - botón para añadir un nuevo dispositivo
+//   - barra inferior de navegación
+//
+// Contiene lógica para:
+//   - evitar navegación hacia atrás: cierra la app en vez de volver a Login
+//   - leer desde Firebase el dispositivo agregado
+//   - navegar a PantallaDispositivo y PantallaAgregar
+// -----------------------------------------------------------------------------
 @Composable
 fun PantallaInicio(navController: NavController) {
 
+    // Obtener la Activity para poder cerrar la app
     val activity = LocalContext.current as? Activity
 
+    // -------------------------------------------------------------------------
+    // BACKHANDLER - evita volver al Login al presionar "Atrás"
+    // Cuando se está en la pantalla Inicio, la app debería cerrarse.
+    // finishAffinity() = cierra todas las activities de la app.
+    // exitProcess(0) = garantiza cierre completo de la ejecución.
+    // -------------------------------------------------------------------------
     BackHandler {
         activity?.finishAffinity()
         exitProcess(0)
     }
 
+    // -------------------------------------------------------------------------
+    // CONTENEDOR PRINCIPAL
+    // -------------------------------------------------------------------------
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Parte superior
+
+        // ---------------------------------------------------------------------
+        // HEADER SUPERIOR - saluda al usuario
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier.padding(top = 40.dp),
             verticalArrangement = Arrangement.Top
         ) {
 
+            // Se obtiene usuario actual de Firebase
             val user = FirebaseAuth.getInstance().currentUser
-            val userEmail = user?.email
+            val userEmail = user?.email // correo del usuario logueado
 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
+
+                // Mostrar email
                 Text(
                     text = "Bienvenido: $userEmail",
                     fontSize = 14.sp,
@@ -96,7 +125,9 @@ fun PantallaInicio(navController: NavController) {
             }
         }
 
-        // Dispositivo agregado
+        // ---------------------------------------------------------------------
+        // SECCIÓN DISPOSITIVO AGREGADO
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,6 +135,7 @@ fun PantallaInicio(navController: NavController) {
             verticalArrangement = Arrangement.Center
         ) {
 
+            // Título “Dispositivos Agregados”
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -118,8 +150,18 @@ fun PantallaInicio(navController: NavController) {
                 )
             }
 
+            // -----------------------------------------------------------------
+            // COMPOSABLE INTERNO PARA MOSTRAR EL DISPOSITIVO AGREGADO
+            //
+            // Lógica:
+            // 1) Lee de Firebase: sesiones/sesion_UID/dispositivo_data
+            // 2) Si estado_agregado == 1 significa que ya existe un dispositivo
+            // 3) Lo muestra en una card
+            // 4) Click → Navega a PantallaDispositivo
+            // -----------------------------------------------------------------
             @Composable
             fun DispositivoAgregado() {
+
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
@@ -128,38 +170,47 @@ fun PantallaInicio(navController: NavController) {
                     return
                 }
 
+                // Se leen los datos del nodo dispositivo_data
                 val (dispositivoDetectado, isLoading, error) =
                     LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
 
+                // -----------------------------------------------------------------
+                // CARD que representa el dispositivo
+                // clickable → abre PantallaDispositivo
+                // -----------------------------------------------------------------
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(top = 40.dp)
                         .clickable(
-                            indication = null,
+                            indication = null, // elimina el ripple
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
+                            // Navegar al panel de ajustes del dispositivo
                             navController.navigate("Dispositivo")
                         },
                     contentAlignment = Alignment.Center
                 ) {
+
                     when {
+
                         isLoading -> Text("Cargando...")
+
                         error != null -> Text("Error: $error")
+
                         else -> {
+
+                            // Si ya existe un dispositivo asociado (estado_agregado == 1)
                             if (dispositivoDetectado?.estado_agregado == 1) {
+
+                                // -------------------------------------------------------------
+                                // CARD VISUAL DEL DISPOSITIVO
+                                // -------------------------------------------------------------
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
-                                        .background(
-                                            color = Color(0xFFEEEDED),
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
-                                        .border(
-                                            width = 2.dp,
-                                            color = Color.Transparent,
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
+                                        .background(Color(0xFFEEEDED), RoundedCornerShape(16.dp))
+                                        .border(2.dp, Color.Transparent, RoundedCornerShape(16.dp))
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -175,6 +226,7 @@ fun PantallaInicio(navController: NavController) {
                                             horizontalArrangement = Arrangement.Start
                                         ) {
 
+                                            // Imagen representativa del dispositivo (Arduino)
                                             Image(
                                                 painter = painterResource(id = R.drawable.icono_arduino),
                                                 contentDescription = "Imagen de ejemplo",
@@ -185,6 +237,7 @@ fun PantallaInicio(navController: NavController) {
 
                                             Spacer(modifier = Modifier.width(12.dp))
 
+                                            // Nombre del dispositivo
                                             Text(
                                                 text = dispositivoDetectado.dispositivo_nombre,
                                                 style = MaterialTheme.typography.titleLarge,
@@ -192,6 +245,8 @@ fun PantallaInicio(navController: NavController) {
                                                 fontWeight = FontWeight.Bold
                                             )
                                         }
+
+                                        // Flecha que indica navegación
                                         Icon(
                                             imageVector = Icons.Default.KeyboardArrowRight,
                                             contentDescription = "Acceder",
@@ -205,29 +260,36 @@ fun PantallaInicio(navController: NavController) {
                     }
                 }
             }
+
+            // Ejecutar el composable del dispositivo
             DispositivoAgregado()
         }
 
-        // Ingresar Dispositivo
+        // ---------------------------------------------------------------------
+        // SECCIÓN PARA AGREGAR NUEVO DISPOSITIVO
+        // ---------------------------------------------------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 40.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
-                    .background(Color(0xFFEEEDED), shape = RoundedCornerShape(16.dp))
+                    .background(Color(0xFFEEEDED), RoundedCornerShape(16.dp))
                     .padding(60.dp)
                     .align(Alignment.CenterHorizontally)
                     .padding(horizontal = 24.dp)
-                    .clickable{
+                    .clickable {
+                        // Navega a la pantalla para detectar/agregar nuevo dispositivo
                         navController.navigate("Agregar")
                     },
                 contentAlignment = Alignment.Center
-
             ) {
+
+                // Icono "+"
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Añadir",
@@ -236,10 +298,10 @@ fun PantallaInicio(navController: NavController) {
             }
         }
 
+        // Barra inferior reutilizable
         BotonesInferiores(navController)
     }
 }
-
 
 // victorvicencio932@gmail.com
 // vitoco2005

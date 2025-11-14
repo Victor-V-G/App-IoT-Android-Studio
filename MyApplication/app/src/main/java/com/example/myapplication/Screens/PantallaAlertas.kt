@@ -56,9 +56,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 
+// Pantalla donde se muestran los estados y mensajes relacionados con las alertas del dispositivo.
+// Se leen los datos configurados en Firebase y se comparan con la corriente detectada.
 @Composable
 fun PantallaAlertas(navController: NavController) {
 
+    // Contexto usado para Toast u otros componentes Android
     val context = LocalContext.current
 
     Column(
@@ -67,18 +70,22 @@ fun PantallaAlertas(navController: NavController) {
             .padding(top = 40.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // HEADER
+
+        // ----------------------
+        // HEADER DE LA PANTALLA
+        // ----------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // icono de volver
+
+                // Botón para volver a "Inicio"
                 IconButton(
                     onClick = { navController.navigate("Inicio") },
                     modifier = Modifier
@@ -93,7 +100,7 @@ fun PantallaAlertas(navController: NavController) {
                     )
                 }
 
-                // Texto centrado
+                // Título centrado
                 Text(
                     text = "Alertas",
                     fontSize = 24.sp,
@@ -104,26 +111,35 @@ fun PantallaAlertas(navController: NavController) {
             }
         }
 
-        // CONTENIDO
+        // ----------------------
+        // CONTENIDO PRINCIPAL
+        // ----------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 1.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
+            // Composable que ejecuta la lógica de lectura y comparación
             @Composable
             fun EjecutarAlertas() {
+
+                // Obtener usuario actual
                 val user = FirebaseAuth.getInstance().currentUser
                 val userId = user?.uid
 
+                // Si no hay usuario autenticado
                 if (userId == null) {
                     Text("Usuario no loggeado")
                     return
                 }
 
+                // Leer datos completos del dispositivo
                 val (dispositivoDetectado, isLoadingD, errorD) =
                     LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
 
+                // Leer SOLO el nodo de alertas
                 val (alertaDispositivo, isLoading, error) =
                     LeerFirebase(
                         "sesiones/sesion_$userId/dispositivo_data/alertas_dispositivo",
@@ -136,23 +152,26 @@ fun PantallaAlertas(navController: NavController) {
                         .padding(top = 40.dp),
                     contentAlignment = Alignment.Center
                 ) {
+
                     when {
+
+                        // Estado de carga
                         isLoading -> Text("Cargando...")
+
+                        // Error al leer datos
                         error != null -> Text("Error: $error")
+
+                        // Datos cargados correctamente
                         else -> {
+
+                            // Si las alertas están activadas → analizar condiciones
                             if (alertaDispositivo?.estado == true) {
+
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
-                                        .background(
-                                            color = Color(0xFFEEEDED),
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
-                                        .border(
-                                            width = 2.dp,
-                                            color = Color.Transparent,
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
+                                        .background(Color(0xFFEEEDED), RoundedCornerShape(16.dp))
+                                        .border(2.dp, Color.Transparent, RoundedCornerShape(16.dp))
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -179,45 +198,44 @@ fun PantallaAlertas(navController: NavController) {
 
                                             Spacer(modifier = Modifier.width(12.dp))
 
+                                            // Obtener valores desde Firebase
                                             val corriente = dispositivoDetectado?.corriente_detectada ?: 0.0
                                             val rangoMin = alertaDispositivo?.rango_minimo ?: 0.0
                                             val rangoMax = alertaDispositivo?.rango_maximo ?: 0.0
 
+                                            // Si los rangos están sin configurar
                                             if (rangoMin == 0.0 && rangoMax == 0.0) {
-                                                Text(text = "No hay un rango mínimo y máximo establecidos")
+                                                Text("No hay un rango mínimo y máximo establecidos")
                                             } else {
+
+                                                // Comparaciones de rango
                                                 if (corriente < rangoMin) {
-                                                    Text(text = "La corriente del dispositivo está por debajo del rango mínimo establecido")
+                                                    Text("La corriente está por debajo del rango mínimo")
                                                 }
 
                                                 if (corriente >= rangoMin && corriente <= rangoMax) {
-                                                    Text(text = "La corriente del dispositivo está en el umbral de los rangos establecidos")
+                                                    Text("La corriente está dentro del umbral establecido")
                                                 }
 
                                                 if (corriente > rangoMax) {
-                                                    Text(text = "La corriente del dispositivo está por arriba del rango máximo establecido")
+                                                    Text("La corriente está por arriba del rango máximo")
                                                 }
                                             }
                                         }
                                     }
                                 }
+
                             } else {
+
+                                // Si la alerta está desactivada, mostrar mensaje simple
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth(0.9f)
-                                        .background(
-                                            color = Color(0xFFEEEDED),
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
-                                        .border(
-                                            width = 2.dp,
-                                            color = Color.Transparent,
-                                            shape = RoundedCornerShape(16.dp)
-                                        )
+                                        .background(Color(0xFFEEEDED), RoundedCornerShape(16.dp))
+                                        .border(2.dp, Color.Transparent, RoundedCornerShape(16.dp))
                                         .padding(24.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
-
                                     Column(
                                         horizontalAlignment = Alignment.CenterHorizontally,
                                         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -240,8 +258,8 @@ fun PantallaAlertas(navController: NavController) {
 
                                             Spacer(modifier = Modifier.width(12.dp))
 
-                                            Text(text = "Las alertas se encuentran desactivadas")
-
+                                            // Texto cuando la alerta está desactivada
+                                            Text("Las alertas se encuentran desactivadas")
                                         }
                                     }
                                 }
@@ -250,9 +268,12 @@ fun PantallaAlertas(navController: NavController) {
                     }
                 }
             }
+
+            // Ejecutar la función interna
             EjecutarAlertas()
         }
     }
 
+    // Barra inferior reutilizable en toda la app
     BotonesInferiores(navController)
 }

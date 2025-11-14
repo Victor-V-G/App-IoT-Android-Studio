@@ -55,7 +55,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import com.example.componentestest.Componentes.Firebase.DispositivoData
 import com.example.componentestest.Componentes.Firebase.LeerFirebase
-import com.example.componentestest.Componentes.Firebase.SensorData
 import com.example.componentestest.Componentes.Firebase.escribirFirebase
 import com.example.myapplication.Componentes.BotonesInferiores
 import com.google.firebase.auth.FirebaseAuth
@@ -65,6 +64,8 @@ import com.example.myapplication.R
 
 
 
+// Pantalla donde se muestra la interfaz para "Agregar Dispositivo"
+// Se compone de un header, un contenedor y el widget para detectar el dispositivo.
 @Composable
 fun PantallaAgregar(navController: NavController) {
 
@@ -74,18 +75,22 @@ fun PantallaAgregar(navController: NavController) {
             .padding(top = 40.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        // HEADER
+
+        // --------------------------
+        // HEADER DE LA PANTALLA
+        // --------------------------
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 20.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
             Box(
-                modifier = Modifier
-                    .fillMaxWidth()
+                modifier = Modifier.fillMaxWidth()
             ) {
-                // icono de volver
+
+                // Botón "volver"
                 IconButton(
                     onClick = { navController.navigate("Inicio") },
                     modifier = Modifier
@@ -100,7 +105,7 @@ fun PantallaAgregar(navController: NavController) {
                     )
                 }
 
-                // Texto centrado
+                // Título centrado
                 Text(
                     text = "Agregar Dispositivo",
                     fontSize = 24.sp,
@@ -111,13 +116,15 @@ fun PantallaAgregar(navController: NavController) {
             }
         }
 
-        // CONTENIDO
+        // CONTENIDO PRINCIPAL
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 40.dp),
             verticalArrangement = Arrangement.Center
         ) {
+
+            // Caja decorativa que contiene la lógica de detectar el dispositivo
             Box(
                 modifier = Modifier
                     .fillMaxWidth(0.9f)
@@ -126,41 +133,54 @@ fun PantallaAgregar(navController: NavController) {
                     .align(Alignment.CenterHorizontally)
                     .padding(horizontal = 24.dp),
                 contentAlignment = Alignment.Center
-
             ) {
                 DetectarDispositivo(navController)
             }
         }
     }
 
+    // Barra inferior reutilizable
     BotonesInferiores(navController)
-
 }
 
+
+
+// Función encargada de leer los datos del dispositivo desde Firebase
+// y permitir al usuario agregarlo si corresponde.
 @Composable
 private fun DetectarDispositivo(navController : NavController) {
 
+    // Obtener usuario actual
     val user = FirebaseAuth.getInstance().currentUser
     val userId = user?.uid
 
+    // Contexto para mostrar Toasts
     val context = LocalContext.current
 
+    // Si no hay usuario autenticado
     if (userId == null) {
         Text("Usuario no loggeado")
         return
     }
 
+    // Leer datos desde Firebase usando tu lector genérico
     val (dispositivoDetectado, isLoading, error) =
         LeerFirebase("sesiones/sesion_$userId/dispositivo_data", DispositivoData::class.java)
 
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
         when {
+
+            // Estado de carga
             isLoading -> Text("Cargando...")
+
+            // Error al obtener datos
             error != null -> Text("Error: $error")
+
+            // Datos cargados correctamente
             else -> {
-                // Imagen dentro de la Box
+
+                // Imagen decorativa o representativa del dispositivo detectado
                 Image(
                     painter = painterResource(id = R.drawable.icono_arduino),
                     contentDescription = "Imagen de ejemplo",
@@ -171,6 +191,7 @@ private fun DetectarDispositivo(navController : NavController) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
+                // Mostrar el nombre del dispositivo leído de Firebase
                 Text(
                     text = "Dispositivo: ${dispositivoDetectado?.dispositivo_nombre ?: "Desconocido"}",
                     style = MaterialTheme.typography.titleMedium
@@ -178,14 +199,25 @@ private fun DetectarDispositivo(navController : NavController) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
+                // Botón para agregar el dispositivo
                 Button(
                     onClick = {
 
+                        // Estado actual (0 = no agregado, 1 = agregado)
                         val estadoAgregado = dispositivoDetectado?.estado_agregado ?: 0
 
-                        if (estadoAgregado == 1){
-                            Toast.makeText(context, "Este dispositivo ya esta agregado", Toast.LENGTH_SHORT).show()
+                        // Si ya fue agregado antes → mostrar aviso
+                        if (estadoAgregado == 1) {
+
+                            Toast.makeText(
+                                context,
+                                "Este dispositivo ya está agregado",
+                                Toast.LENGTH_SHORT
+                            ).show()
+
                         } else {
+
+                            // Guardar datos en Firebase como "agregado"
                             escribirFirebase(
                                 field = "sesiones/sesion_$userId/dispositivo_data",
                                 value = mapOf(
@@ -199,13 +231,19 @@ private fun DetectarDispositivo(navController : NavController) {
                                     ),
                                     "datos_rele" to mapOf(
                                         "estado_rele" to false,
-                                        "modo_uso" to 0,
+                                        "modo_uso" to 0
                                     )
                                 )
                             )
+
+                            // Volver a la pantalla de inicio
                             navController.navigate("Inicio")
-                            Toast.makeText(context, "Dispositivo agregado correctamente", Toast.LENGTH_SHORT).show()
-                            //como el estado paso a 1 deberia poder agregarse en la otra pantalla
+
+                            Toast.makeText(
+                                context,
+                                "Dispositivo agregado correctamente",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 ) {
@@ -215,5 +253,3 @@ private fun DetectarDispositivo(navController : NavController) {
         }
     }
 }
-
-
